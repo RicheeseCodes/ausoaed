@@ -7052,15 +7052,21 @@ end
 
 -- ============================================================
 -- Home section layout fitter
--- The asset positions the four home cards (Server / Friends /
--- User / Client) with fixed pixel offsets that assume the PC
--- viewport. On a mobile viewport with different aspect ratio
--- the cards overlap. We capture the original sizes once and
--- re-lay them out on every openHome (and viewport change) so
--- they always sit in a clean row or 2x2 grid that fits.
+-- The asset's home cards (Server / Friends / User / Client)
+-- have fixed pixel sizes that on a mobile viewport overlap
+-- both each other and the "Welcome home, ..." title.
+-- We:
+--   1. Capture the original sizes once.
+--   2. On every openHome / viewport change, pin the title and
+--      subtitle to the top of homeContainer.
+--   3. Place the four cards in a clean 2x2 grid below the title,
+--      resizing each card so the grid always fits inside the
+--      remaining viewport without crossing the smart bar.
 -- ============================================================
 do
 	local homeOriginals = nil
+	local homeTitleOriginal = nil
+	local homeSubtitleOriginal = nil
 	local layoutOrder = {Server = 1, Friends = 2, User = 3, Client = 4}
 
 	local function captureHomeOriginals()
@@ -7076,6 +7082,20 @@ do
 				}
 			end
 		end
+		if homeContainer:FindFirstChild("Title") then
+			homeTitleOriginal = {
+				AnchorPoint = homeContainer.Title.AnchorPoint,
+				Position    = homeContainer.Title.Position,
+				Size        = homeContainer.Title.Size,
+			}
+		end
+		if homeContainer:FindFirstChild("Subtitle") then
+			homeSubtitleOriginal = {
+				AnchorPoint = homeContainer.Subtitle.AnchorPoint,
+				Position    = homeContainer.Subtitle.Position,
+				Size        = homeContainer.Subtitle.Size,
+			}
+		end
 	end
 
 	function siriusValues.relayoutHomeItems()
@@ -7083,6 +7103,28 @@ do
 		captureHomeOriginals()
 		if not homeOriginals then return end
 
+		local cam = workspace.CurrentCamera or camera
+		local vp = (cam and cam.ViewportSize) or Vector2.new(1280, 720)
+
+		-- Title / subtitle pinned to top-center so they never bleed
+		-- into the card grid.
+		local titleH    = 36
+		local subtitleH = 22
+		local headerTop = 32
+		if homeContainer:FindFirstChild("Title") then
+			homeContainer.Title.AnchorPoint = Vector2.new(0.5, 0)
+			homeContainer.Title.Position    = UDim2.new(0.5, 0, 0, headerTop)
+			homeContainer.Title.Size        = UDim2.new(0, math.min(720, vp.X - 60), 0, titleH)
+			homeContainer.Title.TextXAlignment = Enum.TextXAlignment.Center
+		end
+		if homeContainer:FindFirstChild("Subtitle") then
+			homeContainer.Subtitle.AnchorPoint = Vector2.new(0.5, 0)
+			homeContainer.Subtitle.Position    = UDim2.new(0.5, 0, 0, headerTop + titleH + 4)
+			homeContainer.Subtitle.Size        = UDim2.new(0, math.min(560, vp.X - 80), 0, subtitleH)
+			homeContainer.Subtitle.TextXAlignment = Enum.TextXAlignment.Center
+		end
+
+		-- Cards in display order
 		local items = {}
 		for _, item in ipairs(homeContainer.Interactions:GetChildren()) do
 			if item:IsA("GuiObject") and homeOriginals[item.Name] then
@@ -7092,60 +7134,43 @@ do
 		table.sort(items, function(a, b)
 			return (layoutOrder[a.Name] or 99) < (layoutOrder[b.Name] or 99)
 		end)
+		if #items == 0 then return end
 
-		-- restore original sizes (the open/close animation only mutates
-		-- Position and Size by fixed offsets, so re-applying the design
-		-- size on every open keeps the cards crisp).
-		for _, item in ipairs(items) do
-			local design = homeOriginals[item.Name]
-			item.AnchorPoint = Vector2.new(0, 0)
-			item.Size = design.Size
-		end
+		-- Available area: below the title block, above the smart bar.
+		local gridTop      = headerTop + titleH + subtitleH + 18
+		local gridBottom   = vp.Y - 110   -- room for smartBar + a margin
+		local availH       = math.max(160, gridBottom - gridTop)
+		local hPad, vPad   = 18, 18
+		local availW       = vp.X - 60    -- 30 px gutter on each side
 
-		local cam = workspace.CurrentCamera or camera
-		local vp = (cam and cam.ViewportSize) or Vector2.new(1280, 720)
-		local hPad, vPad = 18, 18
+		-- Decide row count: 1 row if everything fits side-by-side
+		-- nicely, else 2 rows of 2.
+		local n = #items
+		local cols = (n <= 2) and n or 2
+		local rows = math.ceil(n / cols)
 
-		-- Pick a row layout if the viewport is wide enough to hold every
-		-- card in one row; otherwise fall back to a 2-column grid.
-		local rowWidth, maxRowHeight = 0, 0
+		local cellW = math.floor((availW - (cols - 1) * hPad) / cols)
+		local cellH = math.floor((availH - (rows - 1) * vPad) / rows)
+		-- Cap cell size so cards don't get cartoonishly large on huge
+		-- viewports (PC look = ~440x250 per card).
+		cellW = math.min(cellW, 440)
+		cellH = math.min(cellH, 260)
+
+		local gridW = cellW * cols + hPad * (cols - 1)
+		local gridH = cellH * rows + vPad * (rows - 1)
+		local startX = math.floor((vp.X - gridW) / 2)
+		local startY = gridTop + math.floor(((gridBottom - gridTop) - gridH) / 2)
+		if startY < gridTop then startY = gridTop end
+
 		for i, item in ipairs(items) do
-			rowWidth = rowWidth + item.Size.X.Offset
-			if i < #items then rowWidth = rowWidth + hPad end
-			if item.Size.Y.Offset > maxRowHeight then
-				maxRowHeight = item.Size.Y.Offset
-			end
-		end
-
-		if rowWidth <= vp.X - 60 then
-			local startX = math.floor((vp.X - rowWidth) / 2)
-			local y = math.floor((vp.Y - maxRowHeight) / 2 + 30)
-			for _, item in ipairs(items) do
-				item.Position = UDim2.new(0, startX, 0, y)
-				startX = startX + item.Size.X.Offset + hPad
-			end
-		else
-			local function w(i) return items[i] and items[i].Size.X.Offset or 0 end
-			local function h(i) return items[i] and items[i].Size.Y.Offset or 0 end
-			local col1W = math.max(w(1), w(3))
-			local col2W = math.max(w(2), w(4))
-			local row1H = math.max(h(1), h(2))
-			local row2H = math.max(h(3), h(4))
-			local gridW = col1W + hPad + col2W
-			local gridH = row1H + vPad + row2H
-			local startX = math.floor((vp.X - gridW) / 2)
-			local startY = math.floor((vp.Y - gridH) / 2 + 30)
-			for i, item in ipairs(items) do
-				local col = (i - 1) % 2
-				local row = math.floor((i - 1) / 2)
-				local x = startX + (col == 0 and 0 or (col1W + hPad))
-				local y = startY + (row == 0 and 0 or (row1H + vPad))
-				item.Position = UDim2.new(0, x, 0, y)
-			end
+			local col = (i - 1) % cols
+			local row = math.floor((i - 1) / cols)
+			item.AnchorPoint = Vector2.new(0, 0)
+			item.Position = UDim2.new(0, startX + col * (cellW + hPad), 0, startY + row * (cellH + vPad))
+			item.Size = UDim2.new(0, cellW, 0, cellH)
 		end
 	end
 
-	-- Keep the layout fresh on responsive viewport changes too.
 	siriusValues.onResponsiveChange(function()
 		if homeContainer and homeContainer.Visible then
 			siriusValues.relayoutHomeItems()
@@ -7155,17 +7180,18 @@ end
 
 -- ============================================================
 -- Smart-bar toggle (the chevron that opens/closes the smartbar)
--- Make sure it can receive input on every device. We add an
--- invisible larger hitbox for fingertips; the real toggle click
--- handler is wired further down (search "toggle.MouseButton1Click")
--- and ALSO wired to this hitbox so taps on the padded area work.
+-- Force the button to receive input on every device, force a
+-- high ZIndex so panels closing on top can't eat the tap, and
+-- parent a finger-sized invisible hitbox so the small chevron
+-- is easy to hit on touch. The hitbox stays visually identical
+-- to PC -- only the touchable area grows.
 -- ============================================================
 do
 	pcall(function()
 		toggle.Active = true
 		toggle.Selectable = true
 		toggle.AutoButtonColor = false
-		toggle.ZIndex = math.max(toggle.ZIndex or 1, 200)
+		toggle.ZIndex = math.max(toggle.ZIndex or 1, 950)
 	end)
 
 	if not toggle:FindFirstChild("__SiriusToggleHitbox") then
@@ -7176,8 +7202,8 @@ do
 		hitbox.AutoButtonColor = false
 		hitbox.AnchorPoint = Vector2.new(0.5, 0.5)
 		hitbox.Position = UDim2.new(0.5, 0, 0.5, 0)
-		hitbox.Size = UDim2.new(1.8, 16, 1.8, 16)
-		hitbox.ZIndex = (toggle.ZIndex or 200) + 1
+		hitbox.Size = UDim2.new(2.4, 24, 2.4, 24)
+		hitbox.ZIndex = (toggle.ZIndex or 950) + 1
 		hitbox.Active = true
 		hitbox.Selectable = true
 		hitbox.Modal = false
@@ -7657,7 +7683,7 @@ function characterRuntime.positionCharacterPanelContent()
 	setY(interactions:FindFirstChild("Sliders"), contentY)
 	setY(interactions:FindFirstChild("Grid"), contentY)
 
-	task.defer(function()
+	local function placeServerhopAndRejoin()
 		if not interactions or not interactions.Parent then return end
 
 		local grid = interactions:FindFirstChild("Grid")
@@ -7670,7 +7696,26 @@ function characterRuntime.positionCharacterPanelContent()
 
 		setY(interactions:FindFirstChild("Serverhop"), buttonY)
 		setY(interactions:FindFirstChild("Rejoin"), buttonY)
-	end)
+	end
+
+	-- Run once, then a few more times as the grid layout settles (the
+	-- first frame after openCharacter can have AbsoluteContentSize = 0
+	-- which leaves Serverhop/Rejoin overlapping the action grid).
+	task.defer(placeServerhopAndRejoin)
+	task.delay(0.06, placeServerhopAndRejoin)
+	task.delay(0.18, placeServerhopAndRejoin)
+	task.delay(0.4,  placeServerhopAndRejoin)
+
+	-- Keep re-positioning whenever the grid recomputes its size for
+	-- good (handles late-arriving action buttons, beta toggles, etc.).
+	if not characterRuntime.serverhopReactiveBound then
+		local grid = interactions:FindFirstChild("Grid")
+		local gridLayout = grid and (grid:FindFirstChildOfClass("UIGridLayout") or grid:FindFirstChildOfClass("UIListLayout"))
+		if gridLayout then
+			characterRuntime.serverhopReactiveBound = true
+			gridLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(placeServerhopAndRejoin)
+		end
+	end
 end
 
 function characterRuntime.refreshCharacterPanelScroll()
