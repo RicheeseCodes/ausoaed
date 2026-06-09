@@ -2,7 +2,7 @@
 
 Sirius
 
-© 2026 Corridon Capital. 
+¬© 2026 Corridon Capital. 
 All Rights Reserved.
 
 --]]
@@ -90,9 +90,9 @@ local musicLibraryState = {
 139997523791273|Boss Battle Burnout|Workout & Wellness Zone|DistrokidOfficial|Discover New Audio / Trending Music|2:52
 140507496281968|horror music twelve thirty|Sam Keath|DistrokidOfficial|Discover New Audio / Trending Music|1:00
 135549334341493|Obby Rush BGM|Happy Voxel|DistrokidOfficial|Discover New Audio / Trending Music|2:32
-139765110669684|Simple Creepy Scary Atmosphere|GØDA|DistrokidOfficial|Discover New Audio / Trending Music|3:34
+139765110669684|Simple Creepy Scary Atmosphere|G√òDA|DistrokidOfficial|Discover New Audio / Trending Music|3:34
 127798544476125|67 MEME SONG|Trap Music Now|DistrokidOfficial|Discover New Audio / Trending Music|3:14
-137708070605561|67 KID DARIACORE|DRIFTGØD|DistrokidOfficial|Discover New Audio / Trending Music|1:42
+137708070605561|67 KID DARIACORE|DRIFTG√òD|DistrokidOfficial|Discover New Audio / Trending Music|1:42
 137054360044519|GOLDEN FUNK|FNYX|DistrokidOfficial|Discover New Audio / Trending Music|1:48
 1837879082|Paradise Falls|Craig McConnell|APMOfficial|Discover New Audio / Trending Music|2:42
 139780631670217|SIX SEVEN FUNK 67|Eduardo Luzquinos|DistrokidOfficial|Discover New Audio / Trending Music|1:35
@@ -104,8 +104,8 @@ local musicLibraryState = {
 140009716850576|ERROR 264|ImperfectNORE|DistrokidOfficial|Discover New Audio / Trending Music|1:35
 138969888506839|Welcome|Old School Rap|DistrokidOfficial|Discover New Audio / Trending Music|4:00
 140725256021070|Dusty Drum Break|LoFi Cozy Club|DistrokidOfficial|Discover New Audio / Trending Music|2:40
-140245756477343|MONTAGEM BÊNÇÃO slowed|PHONKSUKI|DistrokidOfficial|Discover New Audio / Trending Music|1:38
-140734671048488|Nebulosa Luminosa — 528 Hz|Vector Ufo|DistrokidOfficial|Discover New Audio / Trending Music|3:36
+140245756477343|MONTAGEM B√äN√á√ÉO slowed|PHONKSUKI|DistrokidOfficial|Discover New Audio / Trending Music|1:38
+140734671048488|Nebulosa Luminosa ‚Äî 528 Hz|Vector Ufo|DistrokidOfficial|Discover New Audio / Trending Music|3:36
 139264027778520|The Fight|Pukez|DistrokidOfficial|Discover New Audio / Trending Music|6:58
 138205937070250|Cozy Lobby Piano|Lounge Music for Hotel and Coffee Shop|DistrokidOfficial|Discover New Audio / Trending Music|1:51
 138826080188438|Escape the Night|Chillout Family|DistrokidOfficial|Discover New Audio / Trending Music|2:52
@@ -118,7 +118,7 @@ local musicLibraryState = {
 133237009400059|FUNK CARISTA|hansika.|DistrokidOfficial|Discover New Audio / Trending Music|1:14
 140451602298798|Peaceful Jazz Instrumental|Raven's Chamber|DistrokidOfficial|Discover New Audio / Trending Music|3:19
 140656654319318|Crimson Path|Michael Raffone|APMOfficial|Discover New Audio / Trending Music|2:42
-138001651207846|Dark Ambient Scary Horror Suspense|GØDA|DistrokidOfficial|Discover New Audio / Trending Music|3:43
+138001651207846|Dark Ambient Scary Horror Suspense|G√òDA|DistrokidOfficial|Discover New Audio / Trending Music|3:43
 1841647742|Life in an Elevator 30|Jeremy Peter Godfrey|APMOfficial|Discover New Audio / Trending Music|1:00
 1838635121|Sad End (Solo Piano)|Romain Paillot|APMOfficial|Discover New Audio / Trending Music|2:33
 85871550851299|MONTAGEM PASSO BEM SOLTO|Neo Lyn|DistrokidOfficial|Discover New Audio / Trending Music|1:39
@@ -159,7 +159,7 @@ local musicLibraryState = {
 112166141751710|the final strategy|w.d. gaster|DistrokidOfficial|Discover New Audio / Trending Music|2:09
 140619137413701|Live Piano Stories 06 (Dreamy & Nostalgic)|Carolin Petit|APMOfficial|Discover New Audio / Trending Music|1:41
 139743346356072|Forgotten Crypt Ambient|Whisper of Horror Ambient and Dark Soundscape|DistrokidOfficial|Discover New Audio / Trending Music|3:38
-134959834418523|Liminal Space Creepy Music|GØDA|DistrokidOfficial|Discover New Audio / Trending Music|2:33
+134959834418523|Liminal Space Creepy Music|G√òDA|DistrokidOfficial|Discover New Audio / Trending Music|2:33
 140519141294751|Space Breakfast|Mayor D|DistrokidOfficial|Discover New Audio / Trending Music|2:48
 138188167355006|New Super Mario Bros Tower|yodel boi|DistrokidOfficial|Discover New Audio / Trending Music|3:44
 140352471100859|Spiders Who Scream|Alyce|DistrokidOfficial|Discover New Audio / Trending Music|4:52
@@ -172,8 +172,8 @@ local musicLibraryState = {
 123490114992062|Morning Espresso|Cozy Jazz Cafe|DistrokidOfficial|Discover New Audio / Trending Music|3:02
 136545196434581|Nanny|Sher B.|DistrokidOfficial|Discover New Audio / Trending Music|1:06
 139980780754211|Exfiltrate|Action Cop|DistrokidOfficial|Discover New Audio / Trending Music|2:30
-73550933056379|NO BATIDAO|İREM TEZCAN|DistrokidOfficial|Discover New Audio / Trending Music|1:11
-140504265985079|Football Edit – Phonk Trap|Love Sleep Repeat|DistrokidOfficial|Discover New Audio / Trending Music|2:05
+73550933056379|NO BATIDAO|ƒ∞REM TEZCAN|DistrokidOfficial|Discover New Audio / Trending Music|1:11
+140504265985079|Football Edit ‚Äì Phonk Trap|Love Sleep Repeat|DistrokidOfficial|Discover New Audio / Trending Music|2:05
 136298946425465|CLOUD / KICAU MANIA|societyundercloud|DistrokidOfficial|Discover New Audio / Trending Music|5:18
 1839715356|Intense Motivation Climax|Kosinus|APMOfficial|Discover New Audio / Trending Music|0:42
 112791021679473|Candyland|Tobu|DistrokidOfficial|Discover New Audio / Trending Music|3:27
@@ -476,7 +476,7 @@ local musicLibraryState = {
 1841661146|From the Start c 60|Rex Paul Schnelle|APMOfficial|Genres / Pop|1:01
 1840670248|Let's Get It On (B)|Bill Baylis|APMOfficial|Genres / Pop|1:30
 1839899895|Stupid Girl Vox|Juice Music|APMOfficial|Genres / Pop|0:32
-1843671500|Pégate (Come closer) (Vocal)|Fabio Di Bari|APMOfficial|Genres / Pop|2:10
+1843671500|P√©gate (Come closer) (Vocal)|Fabio Di Bari|APMOfficial|Genres / Pop|2:10
 1838547169|Gangsta For Life|Christopher Roberts|APMOfficial|Genres / Hip Hop|3:22
 1843697838|You Know Why I'm Here (15 sec)|James Desmond|APMOfficial|Genres / Hip Hop|0:16
 1836691889|Jingle Jangle|Matthew Harris|APMOfficial|Genres / Hip Hop|2:31
@@ -895,7 +895,7 @@ local musicLibraryState = {
 103948216758458|Golden Hues|Jacob Gendron|DistrokidOfficial|Genres / Lofi|3:33
 80652148330961|Electrum Bliss|Lofi Metal|DistrokidOfficial|Genres / Lofi|2:08
 117121445727924|Sunset's and Chill|Lofi and Chill Lounge|DistrokidOfficial|Genres / Lofi|3:02
-117677110950041|グリコの涙 (Tears by the Glico Sign)|Multiverse Mixtape|DistrokidOfficial|Genres / Lofi|3:20
+117677110950041|„Ç∞„É™„Ç≥„ÅÆÊ∂ô (Tears by the Glico Sign)|Multiverse Mixtape|DistrokidOfficial|Genres / Lofi|3:20
 93798472235030|Once Again Chillhop Music Lo Fi Lofi Hip Hop Beats|Sam Keath|DistrokidOfficial|Genres / Lofi|1:13
 120142119956807|Going through|Neuro4typical|DistrokidOfficial|Genres / Lofi|2:25
 89224145854578|Friendly Gem|Jespi|DistrokidOfficial|Genres / Lofi|1:18
@@ -959,7 +959,7 @@ local musicLibraryState = {
 134960433133969|Rain|Neuro4typical|DistrokidOfficial|Genres / Lofi|2:32
 107121591144685|Cloudy Thoughts, Clear Mind|Lofi Beat Study|DistrokidOfficial|Genres / Lofi|2:31
 72510594112422|am fast|Lofi Doge|DistrokidOfficial|Genres / Lofi|3:26
-133158596325871|Tacón en el Adoquín|Multiverse Mixtape|DistrokidOfficial|Genres / Lofi|2:50
+133158596325871|Tac√≥n en el Adoqu√≠n|Multiverse Mixtape|DistrokidOfficial|Genres / Lofi|2:50
 107581440274224|Magical Moonrise|KYT LoFi|DistrokidOfficial|Genres / Lofi|4:34
 78745490987291|Mindful Melodies at Dawn|Lofi Beat Study|DistrokidOfficial|Genres / Lofi|4:00
 85576292849979|Pawprints & Pawp Corn|LoFiObiBear|DistrokidOfficial|Genres / Lofi|2:15
@@ -1191,7 +1191,7 @@ local musicLibraryState = {
 1842257982|Country Life|KPM 1000 LP Series|APMOfficial|Genres / Country|1:29
 1848084085|The Country Rock|SPOTS|APMOfficial|Genres / Country|1:04
 1840324897|Country Song 30|Robert John Foster|APMOfficial|Genres / Country|0:33
-106824226671158|Undressed|EyE×tha×Ghost|DistrokidOfficial|Genres / Country|2:33
+106824226671158|Undressed|EyE√ótha√óGhost|DistrokidOfficial|Genres / Country|2:33
 1847316445|Rascal's Love Song F|Ross John Hardy|APMOfficial|Genres / Country|1:39
 1835539503|American Country|Francis Lockwood|APMOfficial|Genres / Country|1:59
 1843503583|Funky Cowboy - Underscore|Willie Lee|APMOfficial|Genres / Country|2:25
@@ -1558,12 +1558,12 @@ local musicLibraryState = {
 83302276739243|Anx-i-e-ty|Kenn Rapp|DistrokidOfficial|Genres / Rap|2:29
 111992344559554|The Easter Rap|Johnmarshmallow|DistrokidOfficial|Genres / Rap|1:23
 96857331752261|Boogers and Snot|Lexy The Rap Dad|DistrokidOfficial|Genres / Rap|1:59
-107044786307834|O Alerta da Última Geração (Rap do Discernimento)|J.Soul / Banda J.Soul|DistrokidOfficial|Genres / Rap|2:24
+107044786307834|O Alerta da √öltima Gera√ß√£o (Rap do Discernimento)|J.Soul / Banda J.Soul|DistrokidOfficial|Genres / Rap|2:24
 1838683484|Magical Dream|Raphael Joly|APMOfficial|Genres / Rap|2:06
 97339914776241|hiphop rap beats bmf|BIG PAHA|DistrokidOfficial|Genres / Rap|1:28
 1839053964|Rap Spirit OL|Stephane Henri Louis Hirondelle|APMOfficial|Genres / Rap|0:30
 93190659701865|Agentic AI: Governance & Regulatory Latency|Ran Chen|DistrokidOfficial|Genres / Rap|2:52
-78539068639046|你說呢|最怕Rapper唱情歌|DistrokidOfficial|Genres / Rap|1:26
+78539068639046|‰Ω†Ë™™Âë¢|ÊúÄÊÄïRapperÂî±ÊÉÖÊ≠å|DistrokidOfficial|Genres / Rap|1:26
 1839049531|Lambada Rapido (Jingle)|Kosinus|APMOfficial|Genres / Rap|0:16
 75660552456439|Vibes and vision|Lilpapercut|DistrokidOfficial|Genres / Rap|2:54
 105574888473725|Tucker Booth 4 Prezident|Tucker Booth|DistrokidOfficial|Genres / Rap|3:02
@@ -1572,9 +1572,9 @@ local musicLibraryState = {
 1836402603|Deep Music 59|Jez Poole|APMOfficial|Genres / Rap|1:02
 94599949173162|Die Glocke rap|Bernd Prokop|DistrokidOfficial|Genres / Rap|4:00
 140256424572039|I'm Rapper|A/One Sam Rapper|DistrokidOfficial|Genres / Rap|2:44
-84259443578253|我沒能成為她的盔甲|最怕Rapper唱情歌|DistrokidOfficial|Genres / Rap|2:57
+84259443578253|ÊàëÊ≤íËÉΩÊàêÁÇ∫Â•πÁöÑÁõîÁî≤|ÊúÄÊÄïRapperÂî±ÊÉÖÊ≠å|DistrokidOfficial|Genres / Rap|2:57
 109417745831909|Agentic AI: Safety Evaluation & the Alignment Tax|Ran Chen|DistrokidOfficial|Genres / Rap|2:40
-115597643655990|Madre (Versión Reguetón - Rap)|Alfalier Gomez|DistrokidOfficial|Genres / Rap|2:35
+115597643655990|Madre (Versi√≥n Reguet√≥n - Rap)|Alfalier Gomez|DistrokidOfficial|Genres / Rap|2:35
 127324832087252|WetWetWet|Oscar Astral Rap|DistrokidOfficial|Genres / Rap|2:58
 79131519834022|love my wife|The Christian Rapper|DistrokidOfficial|Genres / Rap|2:17
 1837431188|The Indians|Gum Collections|APMOfficial|Genres / Folk|3:07
@@ -1657,7 +1657,7 @@ local musicLibraryState = {
 1844980906|Northern Country Folk|Lars-Luis Linek|APMOfficial|Genres / Folk|2:50
 1839920147|Swedish Folk Guitars 30|Juice Music|APMOfficial|Genres / Folk|0:31
 9041795087|Chasing Clouds|James Hustwit|APMOfficial|Genres / Folk|1:00
-1847674286|Ein Jäger Aus Kurpfalz|Unknown|APMOfficial|Genres / Folk|0:30
+1847674286|Ein J√§ger Aus Kurpfalz|Unknown|APMOfficial|Genres / Folk|0:30
 1845559481|Besties|Matthew Gair|APMOfficial|Genres / Folk|0:33
 1839335240|Far Away Beyond|Lisa Eileen Doby|APMOfficial|Genres / Folk|1:30
 1839536443|Change Our World|Jose Andre Louis Robert Le Gall|APMOfficial|Genres / Folk|1:08
@@ -1817,7 +1817,7 @@ local musicLibraryState = {
 1837294468|Life is a Dream|Laurent Couson|APMOfficial|Genres / Classical|0:55
 1836392511|Sonata In A Major 59|Brian Whitehouse|APMOfficial|Genres / Classical|1:03
 1840230216|Classical Heritage (A)|Roger Stephen Dexter|APMOfficial|Genres / Classical|2:29
-9042833509|Madama Butterfly, Act II: Un bel dì, vedremo|KPM Classical Series|APMOfficial|Genres / Classical|1:00
+9042833509|Madama Butterfly, Act II: Un bel d√¨, vedremo|KPM Classical Series|APMOfficial|Genres / Classical|1:00
 1844446870|Classical Innovation 2 B|Tony Tape|APMOfficial|Genres / Classical|1:52
 1837459517|Yor gulsumane|Unknown|APMOfficial|Genres / Classical|2:33
 136202773916355|Moonlight Reverie (Classical)|Luna Everheart|DistrokidOfficial|Genres / Classical|3:18
@@ -1829,7 +1829,7 @@ local musicLibraryState = {
 1838611977|Watermusic Suite - Andante|George Handel|APMOfficial|Genres / Classical|4:19
 1847611417|The Frozen Landscape|Sonoton Vanguard|APMOfficial|Genres / Classical|1:58
 1847148008|Etude In C-Minor (1859)|Sonoton Classical|APMOfficial|Genres / Classical|6:04
-9038726977|Vieille Chanson Française|Justement Music|APMOfficial|Genres / Classical|2:18
+9038726977|Vieille Chanson Fran√ßaise|Justement Music|APMOfficial|Genres / Classical|2:18
 1847035842|Falling Asleep|Robert Alexander Schumann|APMOfficial|Genres / Classical|2:18
 1836282604|Stabat Mater|Public Domain|APMOfficial|Genres / Classical|2:40
 1836528462|Stone Drops 30|Bruton|APMOfficial|Genres / Classical|0:34
@@ -1882,7 +1882,7 @@ local musicLibraryState = {
 1846581966|Land Of My Father's Father A|Chris Hajian|APMOfficial|Genres / World|2:20
 1846217501|World Of Fantasy|Gregor F Narholz|APMOfficial|Genres / World|2:53
 1844945638|Indian Story|Tony Osanah|APMOfficial|Genres / World|0:32
-9039507825|Sarà Perchè Ti Voglio|Kosinus World|APMOfficial|Genres / World|1:59
+9039507825|Sar√† Perch√® Ti Voglio|Kosinus World|APMOfficial|Genres / World|1:59
 9042780521|Sabes A Manzanilla|Kosinus World|APMOfficial|Genres / World|1:43
 1844945550|Bilmem Ki|Ibrahim Firat Badan|APMOfficial|Genres / World|1:04
 9039506086|Mamma Mia|Kosinus World|APMOfficial|Genres / World|1:47
@@ -2135,7 +2135,7 @@ local musicLibraryState = {
 9047880743|Tender Night (No Strings)|Charles Dacre Wright|APMOfficial|Vibes / Chill|1:53
 9043129529|Tender Feeling 1|Sonoton Vinyl|APMOfficial|Vibes / Chill|2:40
 1839748149|Very Tenderly|Jose Andre Louis Robert Le Gall|APMOfficial|Vibes / Chill|1:45
-103068581736710|Push and Pull (Tender Rigger)|Dà Māo|DistrokidOfficial|Vibes / Chill|2:51
+103068581736710|Push and Pull (Tender Rigger)|D√† MƒÅo|DistrokidOfficial|Vibes / Chill|2:51
 1846954202|Tender Lies B|Andy Lutschounig|APMOfficial|Vibes / Chill|1:51
 9043130683|Tender Feeling 1|Sonoton Vinyl|APMOfficial|Vibes / Chill|2:41
 9045343057|Rise Again|Hooked|APMOfficial|Vibes / Chill|2:51
@@ -2177,47 +2177,47 @@ local musicLibraryState = {
 118193975938855|Fawn's Peaceful Forest Rest Lullaby|Lullaby Family|DistrokidOfficial|Vibes / Chill|4:25
 79518784321361|Tender Hours|Lofi Chill|DistrokidOfficial|Vibes / Chill|2:46
 9043298889|Happy Days|Cezame|APMOfficial|Vibes / Chill|2:00
-139765110669684|Simple Creepy Scary Atmosphere|GØDA|DistrokidOfficial|Vibes / Suspenseful|3:34
-134959834418523|Liminal Space Creepy Music|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:33
-120217749813511|True Crime Dark Ambience Creepy Suspense|GØDA|DistrokidOfficial|Vibes / Suspenseful|3:25
+139765110669684|Simple Creepy Scary Atmosphere|G√òDA|DistrokidOfficial|Vibes / Suspenseful|3:34
+134959834418523|Liminal Space Creepy Music|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:33
+120217749813511|True Crime Dark Ambience Creepy Suspense|G√òDA|DistrokidOfficial|Vibes / Suspenseful|3:25
 135768960171473|Creepy Scary|TheSuperInfinite|DistrokidOfficial|Vibes / Suspenseful|3:54
-130107323577188|suspense horror scary creepy|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:25
-131161990326376|Creepy Psychological Scary Music|GØDA|DistrokidOfficial|Vibes / Suspenseful|4:02
-110525105759190|Creepy Horror Scary Mystery Ambience|GØDA|DistrokidOfficial|Vibes / Suspenseful|3:05
+130107323577188|suspense horror scary creepy|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:25
+131161990326376|Creepy Psychological Scary Music|G√òDA|DistrokidOfficial|Vibes / Suspenseful|4:02
+110525105759190|Creepy Horror Scary Mystery Ambience|G√òDA|DistrokidOfficial|Vibes / Suspenseful|3:05
 136545196434581|Nanny|Sher B.|DistrokidOfficial|Vibes / Suspenseful|1:06
-136401027310626|Creepy Silent Scary Sound|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:57
-120021251336713|Creepy Horror Scary Mystery Ambience Background|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:50
-126107809025791|Horror Quiet Piano|GØDA|DistrokidOfficial|Vibes / Suspenseful|3:59
-132105196113810|Dark Suspense Scary Quiet Spooky Background|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:20
+136401027310626|Creepy Silent Scary Sound|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:57
+120021251336713|Creepy Horror Scary Mystery Ambience Background|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:50
+126107809025791|Horror Quiet Piano|G√òDA|DistrokidOfficial|Vibes / Suspenseful|3:59
+132105196113810|Dark Suspense Scary Quiet Spooky Background|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:20
 128207307490247|Living in the Dark|Myuu|DistrokidOfficial|Vibes / Suspenseful|2:31
 9048788556|Creepy Game|Marco Prati|APMOfficial|Vibes / Suspenseful|0:18
-92277043831284|Dark Horror Creepy Spooky Mystery Ambience|GØDA|DistrokidOfficial|Vibes / Suspenseful|4:11
+92277043831284|Dark Horror Creepy Spooky Mystery Ambience|G√òDA|DistrokidOfficial|Vibes / Suspenseful|4:11
 1839772668|Creepy Riser|Kosinus|APMOfficial|Vibes / Suspenseful|0:22
 94050454062295|Mysterious Clots|Spiral Helix|DistrokidOfficial|Vibes / Suspenseful|2:05
 1847595163|Creepy B|Mac Prindy|APMOfficial|Vibes / Suspenseful|1:43
 139616353154466|Creepy Catacombs|Aleksis Tristan Shaw|DistrokidOfficial|Vibes / Suspenseful|1:34
 8592341295|Creepy Dark Room Ambience|UnknownElements|UnknownElements|Vibes / Suspenseful|0:16
 105560583824086|Static Man|Spiral Helix|DistrokidOfficial|Vibes / Suspenseful|2:21
-138042072565724|spooky quiet scary atmosphere|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:44
-127216993183146|Horror Background Spooky Sound|GØDA|DistrokidOfficial|Vibes / Suspenseful|3:13
+138042072565724|spooky quiet scary atmosphere|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:44
+127216993183146|Horror Background Spooky Sound|G√òDA|DistrokidOfficial|Vibes / Suspenseful|3:13
 130792009942698|Creepy Crawlies|M A S E N K O|DistrokidOfficial|Vibes / Suspenseful|2:51
-102615842265981|Creepy Horror Spooky Ambience Mystery Sound|GØDA|DistrokidOfficial|Vibes / Suspenseful|3:02
+102615842265981|Creepy Horror Spooky Ambience Mystery Sound|G√òDA|DistrokidOfficial|Vibes / Suspenseful|3:02
 137602720403475|Digital Plague Virus|Horror Music Archives|DistrokidOfficial|Vibes / Suspenseful|3:20
-119737222636876|Creepy Simple Horror Piano|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:56
-125018060576254|Creepy Shadow Scary Piano|GØDA|DistrokidOfficial|Vibes / Suspenseful|3:47
-109340027333440|Spooky Simple Scary Piano Dark Suspense|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:05
-125825382565505|Eerie Creepy Mysterious Background|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:54
-125295792074994|Creepy Horror Spooky Ambient|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:57
-99986106743597|Creepy Distant Scary Piano|GØDA|DistrokidOfficial|Vibes / Suspenseful|3:10
+119737222636876|Creepy Simple Horror Piano|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:56
+125018060576254|Creepy Shadow Scary Piano|G√òDA|DistrokidOfficial|Vibes / Suspenseful|3:47
+109340027333440|Spooky Simple Scary Piano Dark Suspense|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:05
+125825382565505|Eerie Creepy Mysterious Background|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:54
+125295792074994|Creepy Horror Spooky Ambient|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:57
+99986106743597|Creepy Distant Scary Piano|G√òDA|DistrokidOfficial|Vibes / Suspenseful|3:10
 1839772694|Creepy Riser|Kosinus|APMOfficial|Vibes / Suspenseful|0:22
 80411055305888|Our dimensions separate us|roboxel|DistrokidOfficial|Vibes / Suspenseful|2:28
-122806888428668|Scary Atmosphere Creepy Sound|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:30
-72537752725387|Horror Story Creepy Background|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:59
+122806888428668|Scary Atmosphere Creepy Sound|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:30
+72537752725387|Horror Story Creepy Background|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:59
 94997584218063|Final Thoughts|Spiral Helix|DistrokidOfficial|Vibes / Suspenseful|1:43
 138730351305780|Wind's Wreck 2014|Myuu|DistrokidOfficial|Vibes / Suspenseful|2:40
 114099514221314|Introduction of Space|Tommy Spooky and the Creepy Cats|DistrokidOfficial|Vibes / Suspenseful|5:47
 71140300180242|Xalith|Papa DJhonny|DistrokidOfficial|Vibes / Suspenseful|3:43
-119053941076000|Scary Horror Simple Background|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:10
+119053941076000|Scary Horror Simple Background|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:10
 110454101105543|Puppets Wait Behind Curtains|Horror Sound Ritual|DistrokidOfficial|Vibes / Suspenseful|3:02
 101767646050263|Manic Episode|Tommy Spooky and the Creepy Cats|DistrokidOfficial|Vibes / Suspenseful|5:05
 115660010882902|Lap Around Saturn|Tommy Spooky and the Creepy Cats|DistrokidOfficial|Vibes / Suspenseful|2:37
@@ -2225,28 +2225,28 @@ local musicLibraryState = {
 89802011839313|Echoes of Twin Mountains|Tommy Spooky and the Creepy Cats|DistrokidOfficial|Vibes / Suspenseful|5:00
 1840891089|Creepy Cuts (A)|Tony Clarke|APMOfficial|Vibes / Suspenseful|0:33
 126362209564242|CREEPY FUNK|Phonkholic|DistrokidOfficial|Vibes / Suspenseful|3:26
-105850499155599|Performance That Won’t End|Horror Sound Ritual|DistrokidOfficial|Vibes / Suspenseful|2:42
+105850499155599|Performance That Won‚Äôt End|Horror Sound Ritual|DistrokidOfficial|Vibes / Suspenseful|2:42
 114269485653425|Tina'S Whim|Sher B.|DistrokidOfficial|Vibes / Suspenseful|1:09
 129701385368746|Lorynd|Papa DJhonny|DistrokidOfficial|Vibes / Suspenseful|3:48
 111121936946072|Creepy Crawly Boogie|Neon Parade|DistrokidOfficial|Vibes / Suspenseful|2:04
 73707774569517|Samis creepy tune|67 Sami|DistrokidOfficial|Vibes / Suspenseful|2:05
 126103826874320|Angst|Myuu|DistrokidOfficial|Vibes / Suspenseful|1:41
-86729776284951|Scary Spooky Simple Piano Dark Suspense|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:28
+86729776284951|Scary Spooky Simple Piano Dark Suspense|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:28
 81857578704617|I'm kind disturbed|Creepy Clown|DistrokidOfficial|Vibes / Suspenseful|2:47
 73240114330558|Creepy|juanjo_sound|DistrokidOfficial|Vibes / Suspenseful|1:31
-89466811915329|horror music creepy scary BGM|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:39
+89466811915329|horror music creepy scary BGM|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:39
 9038116290|Creepy Cronies 60B|2nd Foundation Music|APMOfficial|Vibes / Suspenseful|1:02
 84798304619587|Kylthor|Papa DJhonny|DistrokidOfficial|Vibes / Suspenseful|4:03
 95494408784643|Spiral Beginning|Tommy Spooky and the Creepy Cats|DistrokidOfficial|Vibes / Suspenseful|1:54
-133681663491644|spooky quiet scary atmosphere creepy|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:37
+133681663491644|spooky quiet scary atmosphere creepy|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:37
 85083507134014|Curtain Should Stay Closed|Horror Sound Ritual|DistrokidOfficial|Vibes / Suspenseful|2:42
 90279414880187|Creepy Guy|Chubby Pixel|DistrokidOfficial|Vibes / Suspenseful|1:08
 105577085571562|7 Meditative Vistas Under the Sunset Sky|Tommy Spooky and the Creepy Cats|DistrokidOfficial|Vibes / Suspenseful|4:16
 79443416338094|A Clockwork Groove|Tommy Spooky and the Creepy Cats|DistrokidOfficial|Vibes / Suspenseful|5:30
-96694512366982|spooky quiet scary atmosphere horror sound|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:59
+96694512366982|spooky quiet scary atmosphere horror sound|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:59
 98904134814515|Demonic Bass Drop|Horror Music Archives|DistrokidOfficial|Vibes / Suspenseful|3:10
-110115888942259|Dark Suspense Quiet Spooky Horror Story|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:31
-88012477558133|Creepy Theory Background|GØDA|DistrokidOfficial|Vibes / Suspenseful|3:00
+110115888942259|Dark Suspense Quiet Spooky Horror Story|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:31
+88012477558133|Creepy Theory Background|G√òDA|DistrokidOfficial|Vibes / Suspenseful|3:00
 1836706796|My Creepy Cousin|Mark Cousins|APMOfficial|Vibes / Suspenseful|0:33
 9040032736|Creepy Crawlies|Cezame|APMOfficial|Vibes / Suspenseful|1:20
 72567306617886|Keep the score|Creepy Clown|DistrokidOfficial|Vibes / Suspenseful|4:32
@@ -2256,9 +2256,9 @@ local musicLibraryState = {
 1845518282|Creepy Feelings|Afro Musique|APMOfficial|Vibes / Suspenseful|2:14
 1836706496|My Creepy Cousin|Mark Cousins|APMOfficial|Vibes / Suspenseful|1:12
 117150804667284|Syltharak|Papa DJhonny|DistrokidOfficial|Vibes / Suspenseful|3:34
-107382454410509|True Crime Scary Background Creepy Horror|GØDA|DistrokidOfficial|Vibes / Suspenseful|3:03
+107382454410509|True Crime Scary Background Creepy Horror|G√òDA|DistrokidOfficial|Vibes / Suspenseful|3:03
 125544885882303|Behind The Mirror|Spiral Helix|DistrokidOfficial|Vibes / Suspenseful|2:48
-117330636090872|Horror Sound|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:25
+117330636090872|Horror Sound|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:25
 110642900013594|Zorvynak|Papa DJhonny|DistrokidOfficial|Vibes / Suspenseful|3:55
 120040130175676|Flight of the Mothman|Tommy Spooky and the Creepy Cats|DistrokidOfficial|Vibes / Suspenseful|6:48
 1845518639|Creepy Feelings (no Vox)|Afro Musique|APMOfficial|Vibes / Suspenseful|2:15
@@ -2274,7 +2274,7 @@ local musicLibraryState = {
 101675222845397|Happy Creepy|Kevin James French|DistrokidOfficial|Vibes / Suspenseful|5:13
 138625093122130|CREEPY JAZZ|winezra|DistrokidOfficial|Vibes / Suspenseful|2:36
 81890241259637|Balloons Tied to Graves (Creepy Circus Melody)|Runaway Audio|DistrokidOfficial|Vibes / Suspenseful|3:21
-110774379608406|Creepy Hollow Scary Sound|GØDA|DistrokidOfficial|Vibes / Suspenseful|2:54
+110774379608406|Creepy Hollow Scary Sound|G√òDA|DistrokidOfficial|Vibes / Suspenseful|2:54
 127829654772954|Do Replicants Dream of Retirement|Tommy Spooky and the Creepy Cats|DistrokidOfficial|Vibes / Suspenseful|4:19
 9041986246|Creepy Crawlies (a) (60)|Jump|APMOfficial|Vibes / Suspenseful|1:00
 111659196286288|landman|sadboyphonk|DistrokidOfficial|Vibes / Sad|1:57
@@ -2293,7 +2293,7 @@ local musicLibraryState = {
 1836902324|Wintery Guitar|Bob Bradley|APMOfficial|Vibes / Sad|1:15
 1838746210|Sad Eye--Alt.1|Gooding|APMOfficial|Vibes / Sad|3:13
 9044646368|Five Dual Bridges - Sad-Gay 3|JW Vault Collection|APMOfficial|Vibes / Sad|0:32
-124784319745924|You Know When I’m Sad|Moderno Paw|DistrokidOfficial|Vibes / Sad|3:43
+124784319745924|You Know When I‚Äôm Sad|Moderno Paw|DistrokidOfficial|Vibes / Sad|3:43
 9044641020|Five Dual Bridges - Gay-Sad 5 - Remastered|JW Vault Collection|APMOfficial|Vibes / Sad|0:22
 1840217986|The Sad Princess|Paddy Kingsland|APMOfficial|Vibes / Sad|1:36
 1846706973|The Sad Princess (B)|John Fox|APMOfficial|Vibes / Sad|0:57
@@ -2352,7 +2352,7 @@ local musicLibraryState = {
 96401692433788|Sad Song|Akstin|DistrokidOfficial|Vibes / Sad|4:56
 79920518615953|sad reality|Rep Boi|DistrokidOfficial|Vibes / Sad|3:37
 129962226923616|Sadie|Watson Moon|DistrokidOfficial|Vibes / Sad|3:13
-132574855724226|Say “Happy” And “Sad,” It’s Your Word|MelodyPixStar|DistrokidOfficial|Vibes / Sad|1:58
+132574855724226|Say ‚ÄúHappy‚Äù And ‚ÄúSad,‚Äù It‚Äôs Your Word|MelodyPixStar|DistrokidOfficial|Vibes / Sad|1:58
 76693498381230|SAD IN THE CLUB|AVXNUE|DistrokidOfficial|Vibes / Sad|2:08
 1841397503|Nothing Is Impossible b 60|Niri Menashe Sadeh|APMOfficial|Vibes / Sad|1:00
 1844614510|Thoughtful Moment|Cornelus Joh M Cor Bolten|APMOfficial|Vibes / Sad|1:05
@@ -2529,7 +2529,7 @@ local musicLibraryState = {
 89549201403633|Insomnia.exe|AngryPhonk|DistrokidOfficial|Vibes / Angry|2:46
 78487180538252|Angry Adrenaline Surge Push|Workout Music Drive|DistrokidOfficial|Vibes / Angry|5:19
 87905154442451|Outta Darkness Edit 1 60 sec|Morgan Sansous|APMOfficial|Vibes / Angry|1:00
-85722982021233|เธอโกรธฉันอยู่หรือเปล่า? (are you angry at me?)|주현민|DistrokidOfficial|Vibes / Angry|3:22
+85722982021233|‡πÄ‡∏ò‡∏≠‡πÇ‡∏Å‡∏£‡∏ò‡∏â‡∏±‡∏ô‡∏≠‡∏¢‡∏π‡πà‡∏´‡∏£‡∏∑‡∏≠‡πÄ‡∏õ‡∏•‡πà‡∏≤? (are you angry at me?)|Ï£ºÌòÑÎØº|DistrokidOfficial|Vibes / Angry|3:22
 135507038356486|Audrey Nuna|ANGRYHED|DistrokidOfficial|Vibes / Angry|3:51
 82353263743561|I Thought I Saw Your Face Today|ANGRYHED|DistrokidOfficial|Vibes / Angry|2:06
 116828857825980|Stay Right There|AngryAlbino|DistrokidOfficial|Vibes / Angry|3:49
@@ -2538,7 +2538,7 @@ local musicLibraryState = {
 101866510008801|Rebel's Anthem Edit 2 30 sec|Morgan Sansous|APMOfficial|Vibes / Angry|0:30
 90403343337734|Leni Aura Woess|ANGRYHED|DistrokidOfficial|Vibes / Angry|2:21
 90623385787937|I Run|AngryPhonk|DistrokidOfficial|Vibes / Angry|2:06
-85377690153326|Angry Rejection|만수동 고양이 친구들|DistrokidOfficial|Vibes / Angry|4:54
+85377690153326|Angry Rejection|ÎßåÏàòÎèô Í≥†ÏñëÏù¥ ÏπúÍµ¨Îì§|DistrokidOfficial|Vibes / Angry|4:54
 74020011776036|K-Pop Demon|ANGRYHED|DistrokidOfficial|Vibes / Angry|3:07
 138724372168950|Angry Corpses|Zero Again|DistrokidOfficial|Vibes / Angry|1:27
 138416018171931|Bryt upp, bryt upp (singer-songwriter man)|The Angry Optimist|DistrokidOfficial|Vibes / Angry|2:19
@@ -2563,7 +2563,7 @@ local musicLibraryState = {
 137175253202634|angry girlfriend|T-Man|DistrokidOfficial|Vibes / Angry|2:30
 83510897936109|Spicy Coffee|Angry Fi5h|DistrokidOfficial|Vibes / Angry|2:55
 84069101325105|When The Weight Hits|Angry Archie|DistrokidOfficial|Vibes / Angry|4:59
-71833463752181|I’m Not Angry, I’m Just Hurt|H-habena|DistrokidOfficial|Vibes / Angry|3:14
+71833463752181|I‚Äôm Not Angry, I‚Äôm Just Hurt|H-habena|DistrokidOfficial|Vibes / Angry|3:14
 130725331924531|Carro Armato P40|AngryPhonk|DistrokidOfficial|Vibes / Angry|1:28
 133599237678368|PANTHER|AngryPhonk|DistrokidOfficial|Vibes / Angry|1:45
 120889403685339|Fetty Trap Queen Wap|ANGRYHED|DistrokidOfficial|Vibes / Angry|1:55
@@ -2595,7 +2595,7 @@ local musicLibraryState = {
 1840492299|Mists And Illusions|Dave Hewson|APMOfficial|Vibes / Scary|0:43
 1842445544|Deep Space (b)|Peter James Crossman|APMOfficial|Vibes / Scary|2:21
 1835934940|Endless Staircase|Marc Dall'Anese|APMOfficial|Vibes / Scary|2:17
-130759725701047|héctor lavoe|Spooky MaliboOo|DistrokidOfficial|Vibes / Scary|1:15
+130759725701047|h√©ctor lavoe|Spooky MaliboOo|DistrokidOfficial|Vibes / Scary|1:15
 1848111428|Broken Reality|Gregor F Narholz|APMOfficial|Vibes / Scary|2:03
 1848110340|Biblical Truth|Gregor F Narholz|APMOfficial|Vibes / Scary|1:33
 1841091409|Pushing Forward (b)|Mel Wesson|APMOfficial|Vibes / Scary|0:51
@@ -2656,7 +2656,7 @@ local musicLibraryState = {
 1835935148|Psychosis|Marc Dall'Anese|APMOfficial|Vibes / Scary|2:44
 1835935272|Torments|Marc Dall'Anese|APMOfficial|Vibes / Scary|2:37
 131627810508567|You'd Better Come Take A Look At This...|Oliver Blu|DistrokidOfficial|Vibes / Scary|2:39
-103959402518164|La serp que duu el món|Xadamai|DistrokidOfficial|Vibes / Scary|2:24
+103959402518164|La serp que duu el m√≥n|Xadamai|DistrokidOfficial|Vibes / Scary|2:24
 120863720518311|Horror Psycore|Eric Buzin|DistrokidOfficial|Vibes / Scary|4:12
 1835936044|Fatal Trap|Marc Dall'Anese|APMOfficial|Vibes / Scary|0:20
 1840492959|Lonely Spirits|Dave Hewson|APMOfficial|Vibes / Scary|0:58
@@ -2700,7 +2700,7 @@ local musicLibraryState = {
 1841583041|Pony a 60|Christopher Lewis|APMOfficial|Vibes / Happy|1:01
 1839803244|Keep Going Adventure|Patrick Fradji Maarek|APMOfficial|Vibes / Happy|1:10
 1844399951|Happy China|Hermann Skibbe|APMOfficial|Vibes / Happy|0:33
-83840377849149|Feliz Cumpleaños Tito|Happy Birthday Pinata|DistrokidOfficial|Vibes / Happy|1:37
+83840377849149|Feliz Cumplea√±os Tito|Happy Birthday Pinata|DistrokidOfficial|Vibes / Happy|1:37
 110032738229512|HAPPY HALLOWEEN|Galaxima|DistrokidOfficial|Vibes / Happy|3:35
 1840951938|It Don't Get Better Than This (c)|Bill Baylis|APMOfficial|Vibes / Happy|2:42
 140351022306483|Everywhere I go|PurpleSoul Beats|DistrokidOfficial|Vibes / Happy|3:20
@@ -2718,7 +2718,7 @@ local musicLibraryState = {
 1843523479|Life is Good|Ronald W. Boustead|APMOfficial|Vibes / Happy|2:30
 1842743899|Only Human - Vocal Mix|Jacob King|APMOfficial|Vibes / Happy|2:30
 1847441977|Happy Breaks A|Mike Trim|APMOfficial|Vibes / Happy|0:33
-74557531132213|너는 그 별이야 (You Are The Star)|happy catch|DistrokidOfficial|Vibes / Happy|3:12
+74557531132213|ÎÑàÎäî Í∑∏ Î≥ÑÏù¥Ïïº (You Are The Star)|happy catch|DistrokidOfficial|Vibes / Happy|3:12
 9040131621|Happier With You|Kosinus|APMOfficial|Vibes / Happy|2:06
 1842581437|Open Up Happy|Vivian Thompson|APMOfficial|Vibes / Happy|0:31
 1842825258|Bossa Supernova - Underscore|Tim John Howarth|APMOfficial|Vibes / Happy|2:32
@@ -2758,7 +2758,7 @@ local musicLibraryState = {
 1835496799|R N B Story|Eric Renard|APMOfficial|Vibes / Happy|0:32
 1844221560|Sneaky Pants (a) 30|Score Production Music|APMOfficial|Vibes / Happy|0:32
 1844227371|Happy Birthday Indie|David Benjamin Walter|APMOfficial|Vibes / Happy|0:31
-137454816909432|지금이야! (Now is the Time!)|happy catch|DistrokidOfficial|Vibes / Happy|3:27
+137454816909432|ÏßÄÍ∏àÏù¥Ïïº! (Now is the Time!)|happy catch|DistrokidOfficial|Vibes / Happy|3:27
 1840950598|Here Comes The Weekend (a)|KPM Main Series|APMOfficial|Vibes / Happy|3:03
 1839492528|Happy Whistling|Lionel Wendling|APMOfficial|Vibes / Happy|0:58
 9040131456|Happier With You|Kosinus|APMOfficial|Vibes / Happy|2:06
@@ -6750,27 +6750,54 @@ local starlight = UI.Starlight
 local toastsContainer = UI.Toasts
 
 -- ============================================================
--- Auto-Scaling for Mobile / Tablet / Display Density
--- Wraps every top-level UI panel in a UIScale and recomputes
--- the scale from the viewport so SIRIUS X fits and stays
--- legible on phones, tablets, laptops, and high-DPI displays.
+-- Responsive Layout System (Mobile / Tablet / Desktop)
+--
+-- This block does three jobs:
+--   1. Computes a per-device UIScale and applies it to every
+--      top-level panel so SIRIUS X looks the right physical
+--      size on phones, tablets, laptops, and high-DPI displays.
+--   2. Handles the device safe area (notch / Roblox top bar /
+--      gesture strip / mobile chat) via ScreenInsets and a set
+--      of bottom/top safe-inset helpers used elsewhere.
+--   3. Exposes responsive helpers consumed across the script:
+--        siriusValues.deviceCategory()       -> "phone"|"tablet"|"desktop"
+--        siriusValues.isPhone() / isTablet() / isDesktop()
+--        siriusValues.viewportSize()         -> Vector2
+--        siriusValues.fitSize(w, h, padX, padY) -> UDim2
+--        siriusValues.bottomSafeInset()      -> number
+--        siriusValues.topSafeInset()         -> number
+--        siriusValues.responsiveScale()      -> number  (the live UIScale)
+--      and a clamp pass that drags any spilled top-level panel
+--      back inside the viewport whenever it appears or resizes.
 -- ============================================================
 do
-	local AUTOSCALE_TAG = "__SiriusAutoScale"
-	local BASE_DESKTOP  = Vector2.new(1920, 1080)
-	local BASE_TABLET   = Vector2.new(1366, 900)
-	local BASE_PHONE    = Vector2.new(1024, 720)
-	local MIN_SCALE     = 0.55
-	local MAX_SCALE     = 1.25
+	local AUTOSCALE_TAG  = "__SiriusAutoScale"
+	local BASE_DESKTOP   = Vector2.new(1600, 900)
+	local BASE_TABLET    = Vector2.new(1180, 820)
+	local BASE_PHONE     = Vector2.new( 900, 520)
+	local MIN_SCALE      = 0.55
+	local MAX_SCALE      = 1.45
+	local SAFE_PAD       = 6   -- px gap kept between any panel edge and viewport edge
 
 	local autoScale = {
-		current = 1,
+		current  = 1,
 		category = "desktop",
 		viewport = Vector2.new(1280, 720),
 		viewportConn = nil,
-		cameraConn = nil,
+		cameraConn   = nil,
+		applyConns   = {},
 	}
 	siriusValues.autoScale = autoScale
+
+	-- ScreenGui safe-area config: keep our UI inside the device safe
+	-- area on mobile (notch, status bar) while staying flush behind
+	-- the Roblox top bar on desktop where there is no inset.
+	pcall(function()
+		if Enum.ScreenInsets and Enum.ScreenInsets.DeviceSafeInsets then
+			UI.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
+		end
+	end)
+	pcall(function() UI.IgnoreGuiInset = false end)
 
 	local function classifyDevice(viewport)
 		local touch    = userInputService.TouchEnabled
@@ -6779,7 +6806,8 @@ do
 		local minDim   = math.min(viewport.X, viewport.Y)
 		local maxDim   = math.max(viewport.X, viewport.Y)
 		if touch and not mouse and not keyboard then
-			if maxDim < 1100 or minDim < 500 then
+			-- Phones: long side under ~1300 px, or short side under ~520 px
+			if maxDim < 1300 or minDim < 520 then
 				return "phone"
 			end
 			return "tablet"
@@ -6804,8 +6832,50 @@ do
 			base = BASE_TABLET
 		end
 
+		-- Use min of axis ratios so panels never overflow either axis.
 		local s = math.min(viewport.X / base.X, viewport.Y / base.Y)
 		return math.clamp(s, MIN_SCALE, MAX_SCALE), category, viewport
+	end
+
+	-- Responsive helpers consumed elsewhere in the script
+	function siriusValues.deviceCategory() return autoScale.category end
+	function siriusValues.isPhone()    return autoScale.category == "phone"   end
+	function siriusValues.isTablet()   return autoScale.category == "tablet"  end
+	function siriusValues.isDesktop()  return autoScale.category == "desktop" end
+	function siriusValues.responsiveScale() return autoScale.current end
+	function siriusValues.viewportSize()
+		local cam = workspace.CurrentCamera or camera
+		if cam then return cam.ViewportSize end
+		return autoScale.viewport
+	end
+
+	-- Effective viewport AFTER the per-panel UIScale (which divides
+	-- offsets back down). When a panel sets `Size = UDim2.new(0, W, 0, H)`
+	-- and we pass that through fitSize, we want it clamped so that
+	-- W * scale <= viewport.X - padX. So the usable offset is
+	-- (viewport.X - padX) / scale, which is what fitSize computes.
+	function siriusValues.fitSize(w, h, padX, padY)
+		local vp = siriusValues.viewportSize()
+		local s  = math.max(autoScale.current, 0.0001)
+		local px = padX or (autoScale.category == "phone" and 14 or 28)
+		local py = padY or (autoScale.category == "phone" and 90 or 132)
+		local maxW = math.max(60, (vp.X - px) / s)
+		local maxH = math.max(60, (vp.Y - py) / s)
+		return UDim2.new(0, math.min(w, maxW), 0, math.min(h, maxH))
+	end
+
+	-- Safe insets for bottom-anchored elements (smartBar/toggle/toasts).
+	-- On phones we raise things ~30 px so the Roblox chat bar and the
+	-- iOS gesture strip don't clip our UI.
+	function siriusValues.bottomSafeInset()
+		if autoScale.category == "phone"  then return 32 end
+		if autoScale.category == "tablet" then return 18 end
+		return 0
+	end
+	function siriusValues.topSafeInset()
+		if autoScale.category == "phone"  then return 14 end
+		if autoScale.category == "tablet" then return 6  end
+		return 0
 	end
 
 	local function ensureScale(child)
@@ -6819,15 +6889,87 @@ do
 		return s
 	end
 
+	-- Per-panel clamp: after layout settles, push any panel that has
+	-- spilled past the viewport edges back inside. Uses ABSOLUTE coords
+	-- (post-UIScale) so we correct for whatever the original asset said.
+	local clampConns = {}
+	local function clampToViewport(child)
+		if not child or not child:IsA("GuiObject") then return end
+		if not child.Visible then return end
+		local cam = workspace.CurrentCamera or camera
+		if not cam then return end
+		local vp = cam.ViewportSize
+		if vp.X < 1 or vp.Y < 1 then return end
+
+		local absPos  = child.AbsolutePosition
+		local absSize = child.AbsoluteSize
+		if absSize.X < 1 or absSize.Y < 1 then return end
+
+		local dx, dy = 0, 0
+		local right  = absPos.X + absSize.X
+		local bottom = absPos.Y + absSize.Y
+
+		if right  > vp.X - SAFE_PAD then dx = (vp.X - SAFE_PAD) - right end
+		if bottom > vp.Y - SAFE_PAD then dy = (vp.Y - SAFE_PAD) - bottom end
+		if absPos.X + dx < SAFE_PAD then dx = SAFE_PAD - absPos.X end
+		if absPos.Y + dy < SAFE_PAD then dy = SAFE_PAD - absPos.Y end
+
+		if math.abs(dx) < 0.5 and math.abs(dy) < 0.5 then return end
+
+		local p = child.Position
+		child.Position = UDim2.new(
+			p.X.Scale, p.X.Offset + dx,
+			p.Y.Scale, p.Y.Offset + dy
+		)
+	end
+	siriusValues.clampToViewport = clampToViewport
+
+	local function bindClamp(child)
+		if not child or not child:IsA("GuiObject") then return end
+		if clampConns[child] then return end
+		local conns = {}
+		conns[#conns + 1] = child:GetPropertyChangedSignal("Visible"):Connect(function()
+			if child.Visible then task.defer(clampToViewport, child) end
+		end)
+		conns[#conns + 1] = child:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+			if child.Visible then task.defer(clampToViewport, child) end
+		end)
+		clampConns[child] = conns
+		task.defer(clampToViewport, child)
+	end
+
+	-- Fired whenever scale/category changes so panels with cached
+	-- "design" sizes can refresh themselves (smartBar already uses
+	-- siriusValues.getResponsiveSmartBarSize; this signal lets other
+	-- panels do the same without polling).
+	function siriusValues.onResponsiveChange(fn)
+		autoScale.applyConns[fn] = true
+		return function() autoScale.applyConns[fn] = nil end
+	end
+
 	function autoScale.apply()
 		local s, category, viewport = computeScale()
-		autoScale.current = s
+		local prevCategory = autoScale.category
+		local prevScale = autoScale.current
+		autoScale.current  = s
 		autoScale.category = category
 		autoScale.viewport = viewport
 		for _, child in ipairs(UI:GetChildren()) do
 			if child:IsA("GuiObject") then
 				local scale = ensureScale(child)
 				if scale then scale.Scale = s end
+				bindClamp(child)
+				if child.Visible then
+					task.defer(clampToViewport, child)
+				end
+			end
+		end
+		if prevCategory ~= category or math.abs(prevScale - s) > 0.001 then
+			for fn in pairs(autoScale.applyConns) do
+				task.spawn(function()
+					local ok, err = pcall(fn, s, category, viewport)
+					if not ok then warn("[siriusValues.onResponsiveChange] " .. tostring(err)) end
+				end)
 			end
 		end
 	end
@@ -6837,6 +6979,8 @@ do
 			task.defer(function()
 				local scale = ensureScale(child)
 				if scale then scale.Scale = autoScale.current end
+				bindClamp(child)
+				if child.Visible then clampToViewport(child) end
 			end)
 		end
 	end)
@@ -6854,7 +6998,108 @@ do
 	end
 
 	autoScale.cameraConn = workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindCamera)
+	-- Also react when the user toggles touch / connects a controller
+	-- mid-session (e.g. iPad + bluetooth keyboard).
+	userInputService.LastInputTypeChanged:Connect(function() autoScale.apply() end)
 	bindCamera()
+end
+
+-- ============================================================
+-- Mobile container overrides
+-- The interface asset positions notification/toast columns and a
+-- few other floating containers using fixed pixel offsets that
+-- assume a desktop viewport. On phones (and tablets in portrait)
+-- those offsets push the elements past the visible edge. We
+-- capture the design values once and reposition on every
+-- responsive change.
+-- ============================================================
+do
+	local designs = {}
+
+	local function captureDesign(child)
+		if not child or not child:IsA("GuiObject") then return nil end
+		local d = designs[child]
+		if d then return d end
+		d = {
+			AnchorPoint = child.AnchorPoint,
+			Position    = child.Position,
+			Size        = child.Size,
+		}
+		designs[child] = d
+		return d
+	end
+
+	local function applyMobileContainers()
+		local category = siriusValues.deviceCategory()
+		local vp       = siriusValues.viewportSize()
+		local scale    = math.max(siriusValues.responsiveScale(), 0.0001)
+		local bottom   = siriusValues.bottomSafeInset()
+		local top      = siriusValues.topSafeInset()
+
+		-- Notification column (top right). On phones it lives just under
+		-- the top safe inset, on tablets shifted in a little, and on
+		-- desktops we leave the design alone.
+		do
+			local d = captureDesign(notificationContainer)
+			if d then
+				if category == "phone" then
+					notificationContainer.AnchorPoint = Vector2.new(1, 0)
+					local maxWidth = math.min(330, (vp.X - 28) / scale * 0.6)
+					notificationContainer.Size     = UDim2.new(0, maxWidth, 1, -(top + 90))
+					notificationContainer.Position = UDim2.new(1, -10, 0, top + 8)
+				elseif category == "tablet" then
+					notificationContainer.AnchorPoint = d.AnchorPoint
+					notificationContainer.Size        = d.Size
+					notificationContainer.Position    = UDim2.new(
+						d.Position.X.Scale, d.Position.X.Offset,
+						d.Position.Y.Scale, d.Position.Y.Offset + top)
+				else
+					notificationContainer.AnchorPoint = d.AnchorPoint
+					notificationContainer.Position    = d.Position
+					notificationContainer.Size        = d.Size
+				end
+			end
+		end
+
+		-- Toasts column (bottom, centred). Raise it on mobile so the
+		-- chat bar / gesture strip doesn't sit on top of it.
+		do
+			local d = captureDesign(toastsContainer)
+			if d then
+				if category ~= "desktop" then
+					toastsContainer.AnchorPoint = d.AnchorPoint
+					toastsContainer.Size        = d.Size
+					-- design Y offset (-110, -90, -28 depending on state)
+					-- gets shifted upward by bottom safe inset; we only
+					-- mutate the resting position here -- the smartBar
+					-- open/close code reassigns this regardless.
+					toastsContainer.Position    = UDim2.new(
+						d.Position.X.Scale, d.Position.X.Offset,
+						d.Position.Y.Scale, d.Position.Y.Offset - bottom)
+				else
+					toastsContainer.AnchorPoint = d.AnchorPoint
+					toastsContainer.Position    = d.Position
+					toastsContainer.Size        = d.Size
+				end
+			end
+		end
+
+		-- Starlight (background glow) follows the viewport so we always
+		-- cover it on phones in landscape.
+		do
+			local d = captureDesign(starlight)
+			if d then
+				starlight.AnchorPoint = d.AnchorPoint
+				starlight.Position    = d.Position
+				starlight.Size        = UDim2.new(1, 0, 1, 0)
+			end
+		end
+	end
+
+	siriusValues.applyMobileContainers = applyMobileContainers
+	-- run once now, then on every responsive recompute
+	applyMobileContainers()
+	siriusValues.onResponsiveChange(applyMobileContainers)
 end
 
 characterRuntime.characterScrollFadeReady = false
@@ -10382,8 +10627,8 @@ do
 			restorePanel = nil
 		}
 	local playerActionPickerDefaultSize = Vector2.new(390, 520)
-	local playerActionPickerMinSize = Vector2.new(360, 360)
-	local playerActionPickerMaxSize = Vector2.new(440, 540)
+	local playerActionPickerMinSize = Vector2.new(300, 320)
+	local playerActionPickerMaxSize = Vector2.new(460, 560)
 	local playerActionPickerCurrentSize = playerActionPickerDefaultSize
 	siriusValues.selectActionStyle = {
 		panel = Color3.fromRGB(18, 18, 18),
@@ -10470,8 +10715,14 @@ do
 	end
 	local function clampPlayerActionPickerSize(size)
 		local rootSize = siriusValues.getPlayerActionPickerRootSize()
-		local availableWidth = math.max(300, rootSize.X - 40)
-		local availableHeight = math.max(320, rootSize.Y - 72)
+		-- account for the per-panel UIScale so the on-screen pixel size
+		-- never crosses the viewport (panel uses fromOffset, which UIScale
+		-- scales up).
+		local responsiveScale = (siriusValues.responsiveScale and siriusValues.responsiveScale()) or 1
+		responsiveScale = math.max(responsiveScale, 0.0001)
+		local pad = (siriusValues.isPhone and siriusValues.isPhone()) and 24 or 40
+		local availableWidth = math.max(260, (rootSize.X - pad) / responsiveScale)
+		local availableHeight = math.max(280, (rootSize.Y - 72) / responsiveScale)
 		local minWidth = math.min(playerActionPickerMinSize.X, availableWidth)
 		local minHeight = math.min(playerActionPickerMinSize.Y, availableHeight)
 		local maxWidth = math.max(minWidth, math.min(playerActionPickerMaxSize.X, availableWidth))
@@ -10491,7 +10742,8 @@ do
 		)
 	end
 	local function getSpectateTogglePickerGeometry()
-		return UDim2.new(0.5, 0, 0, 18 + spectateToggleSize.Y * 0.5), spectateToggleSize
+		local topPad = (siriusValues.topSafeInset and siriusValues.topSafeInset()) or 0
+		return UDim2.new(0.5, 0, 0, 18 + topPad + spectateToggleSize.Y * 0.5), spectateToggleSize
 	end
 	local function getPlayerActionPickerGeometry()
 		playerActionPickerCurrentSize = clampPlayerActionPickerSize(playerActionPickerCurrentSize)
@@ -10549,7 +10801,7 @@ do
 		if not spectateBar then return end
 
 		spectateBar.Size = UDim2.fromOffset(spectateToggleSize.X, spectateToggleSize.Y)
-		spectateBar.Position = UDim2.new(0.5, 0, 0, 18)
+		spectateBar.Position = UDim2.new(0.5, 0, 0, 18 + ((siriusValues.topSafeInset and siriusValues.topSafeInset()) or 0))
 	end
 
 	local function cancelSpectateMorphTweens()
@@ -10974,7 +11226,7 @@ local function ensureSpectateBar()
 	spectateBar = Instance.new("CanvasGroup")
 	spectateBar.Name = "SiriusSpectateControl"
 	spectateBar.AnchorPoint = Vector2.new(0.5, 0)
-		spectateBar.Position = UDim2.new(0.5, 0, 0, 18)
+		spectateBar.Position = UDim2.new(0.5, 0, 0, 18 + ((siriusValues.topSafeInset and siriusValues.topSafeInset()) or 0))
 		spectateBar.Size = UDim2.fromOffset(spectateToggleSize.X, spectateToggleSize.Y)
 		spectateBar.BackgroundColor3 = Color3.fromRGB(13, 13, 13)
 		spectateBar.BackgroundTransparency = 1
@@ -11179,7 +11431,7 @@ local function ensureSpectateBar()
 		close.BackgroundColor3 = Color3.fromRGB(16, 19, 21)
 			close.BackgroundTransparency = 0.48
 	close.BorderSizePixel = 0
-		close.Text = "×"
+		close.Text = "√ó"
 		close.TextColor3 = Color3.fromRGB(238, 238, 238)
 		close.TextTransparency = 0.12
 			close.TextSize = 23
@@ -12271,7 +12523,7 @@ local function ensureLiveTrackPanel()
 	pin.BackgroundColor3 = Color3.fromRGB(42, 42, 42)
 	pin.BackgroundTransparency = 0.18
 	pin.BorderSizePixel = 0
-	pin.Text = "⌖"
+	pin.Text = "‚åñ"
 	pin.TextColor3 = Color3.fromRGB(205, 205, 205)
 	pin.TextSize = 17
 	pin.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
@@ -12315,7 +12567,7 @@ local function ensureLiveTrackPanel()
 	closeIcon.Name = "Icon"
 	closeIcon.BackgroundTransparency = 1
 	closeIcon.Size = UDim2.fromScale(1, 1)
-	closeIcon.Text = "×"
+	closeIcon.Text = "√ó"
 	closeIcon.TextColor3 = Color3.fromRGB(220, 220, 220)
 	closeIcon.TextTransparency = 0.08
 	closeIcon.TextSize = 23
@@ -13265,7 +13517,11 @@ local function ensurePlayerActionPicker()
 		panel.Name = "SelectActionsPanel"
 		panel.AnchorPoint = Vector2.new(0.5, 0.5)
 		panel.Position = UDim2.new(0.5, 0, 0.5, 0)
-		panel.Size = UDim2.fromOffset(390, 520)
+		do
+			local initialSize = clampPlayerActionPickerSize(playerActionPickerDefaultSize)
+			playerActionPickerCurrentSize = initialSize
+			panel.Size = UDim2.fromOffset(initialSize.X, initialSize.Y)
+		end
 		panel.BackgroundColor3 = siriusValues.selectActionStyle.panel
 		panel.BackgroundTransparency = 0
 		panel.BorderSizePixel = 0
@@ -13373,7 +13629,7 @@ local function ensurePlayerActionPicker()
 		close.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
 		close.BackgroundTransparency = 1
 		close.BorderSizePixel = 0
-		close.Text = "×"
+		close.Text = "√ó"
 		close.TextColor3 = Color3.fromRGB(220, 220, 220)
 		close.TextTransparency = 0.08
 		close.TextSize = 24
@@ -15002,7 +15258,11 @@ local function ensurePlayerActionPicker()
 	panel.Name = "ParameterEnum"
 	panel.AnchorPoint = Vector2.new(0.5, 0.5)
 	panel.Position = UDim2.new(0.5, 0, 0.5, 0)
-	panel.Size = UDim2.fromOffset(playerActionPickerDefaultSize.X, playerActionPickerDefaultSize.Y)
+	do
+		local initialSize = clampPlayerActionPickerSize(playerActionPickerDefaultSize)
+		playerActionPickerCurrentSize = initialSize
+		panel.Size = UDim2.fromOffset(initialSize.X, initialSize.Y)
+	end
 	panel.BackgroundTransparency = 1
 	panel.BorderSizePixel = 0
 	panel.AutoButtonColor = false
@@ -16284,10 +16544,10 @@ local function updateMusicProgress()
 	end
 	if musicTopArtistLabel then
 		local track = musicLibraryState.currentTrack
-		musicTopArtistLabel.Text = track and truncateMusicText(track.artist.." • "..track.section, 42) or "Select a track from the library"
+		musicTopArtistLabel.Text = track and truncateMusicText(track.artist.." ‚Ä¢ "..track.section, 42) or "Select a track from the library"
 	end
 	if musicPanel and musicPanel:FindFirstChild("Playing") then
-		musicPanel.Playing.Text = truncateMusicText(musicLibraryState.nowPlayingTitle or "Not Playing", 30).."  •  "..timeText
+		musicPanel.Playing.Text = truncateMusicText(musicLibraryState.nowPlayingTitle or "Not Playing", 30).."  ‚Ä¢  "..timeText
 	end
 end
 musicLibraryState.updateProgress = updateMusicProgress
@@ -16466,7 +16726,7 @@ local function ensureMusicTopPlayer()
 	musicArtworkFallback.BackgroundTransparency = 1
 	musicArtworkFallback.Size = UDim2.new(1, 0, 1, 0)
 	musicArtworkFallback.Font = Enum.Font.GothamBold
-	musicArtworkFallback.Text = "♫"
+	musicArtworkFallback.Text = "‚ô´"
 	musicArtworkFallback.TextColor3 = Color3.fromRGB(242, 214, 216)
 	musicArtworkFallback.TextSize = 34
 	musicArtworkFallback.TextTransparency = 0.15
@@ -16611,7 +16871,7 @@ local function ensureMusicTopPlayer()
 	musicPlayButton.Size = UDim2.new(0, 42, 0, 34)
 	musicPlayButton.AutoButtonColor = false
 	musicPlayButton.Font = Enum.Font.GothamBold
-	musicPlayButton.Text = "▶"
+	musicPlayButton.Text = "‚ñ∂"
 	musicPlayButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 	musicPlayButton.TextSize = 20
 	musicPlayButton.TextTransparency = 1
@@ -16636,7 +16896,7 @@ local function ensureMusicTopPlayer()
 					musicLibraryState.audio:Play()
 				end
 			end
-			musicPlayButton.Text = musicLibraryState.audio.Playing and "Ⅱ" or "▶"
+			musicPlayButton.Text = musicLibraryState.audio.Playing and "‚Ö°" or "‚ñ∂"
 			updateMusicProgress()
 			updateMusicLibraryActiveRows()
 		elseif musicLibraryState.renderedTracks and #musicLibraryState.renderedTracks > 0 then
@@ -16704,7 +16964,7 @@ local function ensureMusicTopPlayer()
 	close.Size = UDim2.new(0, 24, 0, 24)
 	close.AutoButtonColor = false
 	close.Font = Enum.Font.GothamBold
-	close.Text = "×"
+	close.Text = "√ó"
 	close.TextColor3 = Color3.fromRGB(218, 176, 178)
 	close.TextSize = 23
 	close.TextTransparency = 1
@@ -16739,7 +16999,7 @@ local function ensureMusicTopToggle()
 	musicTopToggle.Size = UDim2.new(0, 46, 0, 46)
 	musicTopToggle.AutoButtonColor = false
 	musicTopToggle.Font = Enum.Font.GothamBold
-	musicTopToggle.Text = "♫"
+	musicTopToggle.Text = "‚ô´"
 	musicTopToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
 	musicTopToggle.TextSize = 24
 	musicTopToggle.TextTransparency = 1
@@ -16844,7 +17104,7 @@ local function updateMusicTopPlayerDetails(track)
 		musicNowPlayingLabel.Text = track and truncateMusicText(track.title, 36) or "Not Playing"
 	end
 	if musicTopArtistLabel then
-		musicTopArtistLabel.Text = track and truncateMusicText(track.artist.." • "..track.section, 42) or "Select a track from the library"
+		musicTopArtistLabel.Text = track and truncateMusicText(track.artist.." ‚Ä¢ "..track.section, 42) or "Select a track from the library"
 	end
 	if musicArtworkImage then
 		if track and track.id then
@@ -16891,10 +17151,9 @@ local function ensureMusicLibraryUI()
 	parseRobloxMusicLibrary()
 
 	if not musicPanel:GetAttribute("CustomMusicLibrarySize") then
-		local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
 		musicPanel.AnchorPoint = Vector2.new(0.5, 0.5)
 		musicPanel.Position = UDim2.new(0.5, 0, 0.48, 0)
-		musicPanel.Size = UDim2.new(0, math.min(620, viewport.X - 42), 0, math.min(570, viewport.Y - 132))
+		musicPanel.Size = siriusValues.fitSize(620, 570)
 		musicPanel:SetAttribute("CustomMusicLibrarySize", true)
 	end
 
@@ -16937,7 +17196,7 @@ local function ensureMusicLibraryUI()
 		icon.Position = UDim2.new(0, 46, 0, 34)
 		icon.Size = UDim2.new(0, 30, 0, 34)
 		icon.Font = Enum.Font.GothamBold
-		icon.Text = "♫"
+		icon.Text = "‚ô´"
 		icon.TextColor3 = Color3.fromRGB(255, 255, 255)
 		icon.TextSize = 32
 		icon.TextTransparency = 0.02
@@ -16964,7 +17223,7 @@ local function ensureMusicLibraryUI()
 		close.Size = UDim2.new(0, 34, 0, 34)
 		close.AutoButtonColor = false
 		close.Font = Enum.Font.Gotham
-		close.Text = "×"
+		close.Text = "√ó"
 		close.TextColor3 = Color3.fromRGB(230, 177, 180)
 		close.TextSize = 32
 		close.TextTransparency = 0.22
@@ -17242,14 +17501,14 @@ local function ensureMusicLibraryUI()
 		musicPlayButton.Size = UDim2.new(0, 30, 0, 22)
 		musicPlayButton.AutoButtonColor = false
 		musicPlayButton.Font = Enum.Font.GothamBold
-		musicPlayButton.Text = "▶"
+		musicPlayButton.Text = "‚ñ∂"
 		musicPlayButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 		musicPlayButton.TextSize = 21
 		musicPlayButton.ZIndex = musicLibraryZIndex + 4
 		musicPlayButton.MouseButton1Click:Connect(function()
 			if musicLibraryState.audio then
 				musicLibraryState.audio.Playing = not musicLibraryState.audio.Playing
-				musicPlayButton.Text = musicLibraryState.audio.Playing and "Ⅱ" or "▶"
+				musicPlayButton.Text = musicLibraryState.audio.Playing and "‚Ö°" or "‚ñ∂"
 				updateMusicProgress()
 				updateMusicLibraryActiveRows()
 			else
@@ -17265,7 +17524,7 @@ local function ensureMusicLibraryUI()
 		musicNextButton.Size = UDim2.new(0, 30, 0, 22)
 		musicNextButton.AutoButtonColor = false
 		musicNextButton.Font = Enum.Font.GothamBold
-		musicNextButton.Text = "▶▌"
+		musicNextButton.Text = "‚ñ∂‚ñå"
 		musicNextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 		musicNextButton.TextSize = 20
 		musicNextButton.ZIndex = musicLibraryZIndex + 4
@@ -17408,10 +17667,9 @@ local function ensureMusicSettingsLibraryUI()
 	parseRobloxMusicLibrary()
 
 	if not musicPanel:GetAttribute("SettingsStyleMusicSize") then
-		local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
 		musicPanel.AnchorPoint = settingsPanel.AnchorPoint
 		musicPanel.Position = settingsPanel.Position
-		musicPanel.Size = UDim2.new(0, math.min(613, viewport.X - 42), 0, math.min(384, viewport.Y - 132))
+		musicPanel.Size = siriusValues.fitSize(613, 384)
 		musicPanel:SetAttribute("SettingsStyleMusicSize", true)
 	end
 
@@ -17462,7 +17720,7 @@ local function ensureMusicSettingsLibraryUI()
 	musicBackButton.AutoButtonColor = false
 	if musicBackButton:IsA("TextButton") then
 		musicBackButton.Font = Enum.Font.GothamBold
-		musicBackButton.Text = "←"
+		musicBackButton.Text = "‚Üê"
 		musicBackButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 		musicBackButton.TextSize = 26
 		musicBackButton.TextTransparency = 0.02
@@ -17480,7 +17738,7 @@ local function ensureMusicSettingsLibraryUI()
 	musicHeaderIcon.Position = UDim2.new(0, 42, 0, 36)
 	musicHeaderIcon.Size = UDim2.new(0, 30, 0, 34)
 	musicHeaderIcon.Font = Enum.Font.GothamBold
-	musicHeaderIcon.Text = "♫"
+	musicHeaderIcon.Text = "‚ô´"
 	musicHeaderIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
 	musicHeaderIcon.TextSize = 29
 	musicHeaderIcon.Visible = false
@@ -17522,7 +17780,7 @@ local function ensureMusicSettingsLibraryUI()
 	close.Size = UDim2.new(0, 34, 0, 34)
 	close.AutoButtonColor = false
 	close.Font = Enum.Font.Gotham
-	close.Text = "×"
+	close.Text = "√ó"
 	close.TextColor3 = Color3.fromRGB(230, 177, 180)
 	close.TextSize = 30
 	close.TextTransparency = 0.22
@@ -17701,7 +17959,7 @@ updateMusicLibraryActiveRows = function()
 			local playButton = (controls and controls:FindFirstChild("Play")) or row:FindFirstChild("Play")
 
 			if playButton then
-				playButton.Text = "▶"
+				playButton.Text = "‚ñ∂"
 				tweenService:Create(playButton, TweenInfo.new(0.24, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
 					TextColor3 = active and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(226, 226, 226),
 					TextTransparency = active and 0.02 or 0.16,
@@ -17733,7 +17991,7 @@ stopMusicTrack = function()
 	musicLibraryState.durationText = "--:--"
 	musicLibraryState.nowPlayingTitle = "Not Playing"
 	updateMusicTopPlayerDetails(nil)
-	if musicPlayButton then musicPlayButton.Text = "▶" end
+	if musicPlayButton then musicPlayButton.Text = "‚ñ∂" end
 	syncMusicTopToggle()
 	updateMusicProgress()
 	updateMusicLibraryActiveRows()
@@ -17773,11 +18031,11 @@ playMusicTrack = function(track, index)
 	end)
 	updateMusicProgress()
 	task.delay(0.45, updateMusicProgress)
-	if musicPlayButton then musicPlayButton.Text = "Ⅱ" end
+	if musicPlayButton then musicPlayButton.Text = "‚Ö°" end
 	updateMusicLibraryActiveRows()
 
 	if checkSetting("Now Playing Notifications").current then
-		queueNotification("Now Playing", track.title.." • "..track.artist, 4400695581)
+		queueNotification("Now Playing", track.title.." ‚Ä¢ "..track.artist, 4400695581)
 	end
 
 	task.spawn(function()
@@ -17788,7 +18046,7 @@ playMusicTrack = function(track, index)
 		musicLibraryState.durationText = "--:--"
 		musicLibraryState.nowPlayingTitle = "Not Playing"
 		updateMusicTopPlayerDetails(nil)
-		if musicPlayButton then musicPlayButton.Text = "▶" end
+		if musicPlayButton then musicPlayButton.Text = "‚ñ∂" end
 		syncMusicTopToggle()
 		updateMusicProgress()
 		updateMusicLibraryActiveRows()
@@ -17812,7 +18070,7 @@ openMusicPlayerForTrack = function(track, index)
 		end
 		showMusicTopPlayer()
 		updateMusicTopPlayerDetails(track)
-		if musicPlayButton then musicPlayButton.Text = audio.Playing and "Ⅱ" or "▶" end
+		if musicPlayButton then musicPlayButton.Text = audio.Playing and "‚Ö°" or "‚ñ∂" end
 		updateMusicProgress()
 		updateMusicLibraryActiveRows()
 		return
@@ -17885,7 +18143,7 @@ local function createMusicLibraryRow(track, index, token)
 	playButton.Size = UDim2.new(1, 0, 1, 0)
 	playButton.AutoButtonColor = false
 	playButton.Font = Enum.Font.GothamBold
-	playButton.Text = "▶"
+	playButton.Text = "‚ñ∂"
 	playButton.TextColor3 = Color3.fromRGB(226, 226, 226)
 	playButton.TextSize = 19
 	playButton.TextTransparency = 0.18
@@ -18020,7 +18278,7 @@ local function createMusicLibraryFallbackRow(track, index, token)
 	playButton.Size = UDim2.new(0, 36, 0, 32)
 	playButton.AutoButtonColor = false
 	playButton.Font = Enum.Font.GothamBold
-	playButton.Text = "▶"
+	playButton.Text = "‚ñ∂"
 	playButton.TextColor3 = Color3.fromRGB(235, 235, 235)
 	playButton.TextSize = 19
 	playButton.ZIndex = musicLibraryZIndex + 6
@@ -18096,7 +18354,7 @@ musicLibraryState.playNext = function()
 		musicLibraryState.nowPlayingTitle = "Not Playing"
 		if musicNowPlayingLabel then musicNowPlayingLabel.Text = "Not Playing" end
 		if musicProgressTime then musicProgressTime.Text = "0:00 / --:--" end
-		if musicPlayButton then musicPlayButton.Text = "▶" end
+		if musicPlayButton then musicPlayButton.Text = "‚ñ∂" end
 		return
 	end
 
@@ -18211,8 +18469,8 @@ local function syncExperienceInformation()
 			gameDetectionPrompt.Layer.ScriptSubtitle.Text = gameFound.description
 			gameDetectionPrompt.Thumbnail.Image = "https://assetgame.roblox.com/Game/Tools/ThumbnailAsset.ashx?aid="..tostring(placeId).."&fmt=png&wd=420&ht=420"
 
-			gameDetectionPrompt.Size = UDim2.new(0, 550, 0, 0)
-			gameDetectionPrompt.Position = UDim2.new(0.5, 0, 0, 120)
+			gameDetectionPrompt.Size = siriusValues.fitSize(550, 0)
+			gameDetectionPrompt.Position = UDim2.new(0.5, 0, 0, 120 + siriusValues.topSafeInset())
 			gameDetectionPrompt.UICorner.CornerRadius = UDim.new(0, 9)
 			gameDetectionPrompt.Thumbnail.UICorner.CornerRadius = UDim.new(0, 9)
 			gameDetectionPrompt.ScriptTitle.Position = UDim2.new(0, 30, 0.5, 0)
@@ -18227,8 +18485,8 @@ local function syncExperienceInformation()
 			tweenService:Create(gameDetectionPrompt.Thumbnail, TweenInfo.new(0.5, Enum.EasingStyle.Quint),  {ImageTransparency = 0.4}):Play()
 			tweenService:Create(gameDetectionPrompt.ScriptTitle, TweenInfo.new(0.6, Enum.EasingStyle.Quint),  {TextTransparency = 0}):Play()
 
-			tweenService:Create(gameDetectionPrompt, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Size = UDim2.new(0, 587, 0, 44)}):Play()
-			tweenService:Create(gameDetectionPrompt, TweenInfo.new(1, Enum.EasingStyle.Exponential), {Position = UDim2.new(0.5, 0, 0, 150)}):Play()
+			tweenService:Create(gameDetectionPrompt, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Size = siriusValues.fitSize(587, 44)}):Play()
+			tweenService:Create(gameDetectionPrompt, TweenInfo.new(1, Enum.EasingStyle.Exponential), {Position = UDim2.new(0.5, 0, 0, 150 + siriusValues.topSafeInset())}):Play()
 
 			task.wait(1)
 
@@ -18236,9 +18494,9 @@ local function syncExperienceInformation()
 
 			gameDetectionPrompt.Layer.Visible = true
 
-			tweenService:Create(gameDetectionPrompt, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Size = UDim2.new(0, 473, 0, 154)}):Play()
+			tweenService:Create(gameDetectionPrompt, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Size = siriusValues.fitSize(473, 154)}):Play()
 			tweenService:Create(gameDetectionPrompt.ScriptTitle, TweenInfo.new(1, Enum.EasingStyle.Exponential), {Position = UDim2.new(0, 23, 0.352, 0)}):Play()
-			tweenService:Create(gameDetectionPrompt, TweenInfo.new(1, Enum.EasingStyle.Exponential), {Position = UDim2.new(0.5, 0, 0, 200)}):Play()
+			tweenService:Create(gameDetectionPrompt, TweenInfo.new(1, Enum.EasingStyle.Exponential), {Position = UDim2.new(0.5, 0, 0, 200 + siriusValues.topSafeInset())}):Play()
 			tweenService:Create(gameDetectionPrompt.UICorner, TweenInfo.new(1, Enum.EasingStyle.Exponential), {CornerRadius = UDim.new(0, 13)}):Play()
 			tweenService:Create(gameDetectionPrompt.Thumbnail.UICorner, TweenInfo.new(1, Enum.EasingStyle.Exponential), {CornerRadius = UDim.new(0, 13)}):Play()
 			tweenService:Create(gameDetectionPrompt.Thumbnail, TweenInfo.new(1, Enum.EasingStyle.Exponential), {ImageTransparency = 0.5}):Play()
@@ -18264,7 +18522,7 @@ local function syncExperienceInformation()
 				tweenService:Create(gameDetectionPrompt.ScriptTitle, TweenInfo.new(0.3, Enum.EasingStyle.Quint),  {TextTransparency = 1}):Play()
 				tweenService:Create(gameDetectionPrompt.Layer.Run.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint),  {Transparency = 1}):Play()
 				task.wait(0.05)
-				tweenService:Create(gameDetectionPrompt, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = UDim2.new(0, 400, 0, 0)}):Play()
+				tweenService:Create(gameDetectionPrompt, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = siriusValues.fitSize(400, 0)}):Play()
 				tweenService:Create(gameDetectionPrompt.UICorner, TweenInfo.new(0.2, Enum.EasingStyle.Exponential), {CornerRadius = UDim.new(0, 5)}):Play()
 				tweenService:Create(gameDetectionPrompt.Thumbnail.UICorner, TweenInfo.new(0.2, Enum.EasingStyle.Exponential), {CornerRadius = UDim.new(0, 5)}):Play()
 				task.wait(0.41)
@@ -18925,7 +19183,7 @@ local function closePanel(panelName, openingOther)
 		tweenService:Create(panel, TweenInfo.new(0.75, Enum.EasingStyle.Exponential, Enum.EasingDirection.InOut), {BackgroundTransparency = 1}):Play()
 		tweenService:Create(panel, TweenInfo.new(1.1, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = button.Size}):Play()
 		tweenService:Create(panel, TweenInfo.new(0.65, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.buttonPositions[panelName]}):Play()
-		tweenService:Create(toggle, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, -85)}):Play()
+		tweenService:Create(toggle, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-85))}):Play()
 	end
 
 	-- Animate interactive elements
@@ -18980,11 +19238,11 @@ local function openPanel(panelName)
 		characterRuntime.resetCharacterPanelHeaderScroll()
 	end
 
-	tweenService:Create(toggle, TweenInfo.new(0.65, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, -(panelSize.Y.Offset + 95))}):Play()
+	tweenService:Create(toggle, TweenInfo.new(0.65, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-(panelSize.Y.Offset + 95)))}):Play()
 
 	tweenService:Create(panel, TweenInfo.new(0.1, Enum.EasingStyle.Quint), {BackgroundTransparency = 0}):Play()
 	tweenService:Create(panel, TweenInfo.new(0.8, Enum.EasingStyle.Exponential), {Size = panelSize}):Play()
-	tweenService:Create(panel, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, -90)}):Play()
+	tweenService:Create(panel, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-90))}):Play()
 	task.wait(0.1)
 	tweenService:Create(panel.Shadow, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {ImageTransparency = 0.7}):Play()
 	tweenService:Create(panel.Icon, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {ImageTransparency = 0}):Play()
@@ -20727,7 +20985,7 @@ function promptModerator(player, role, promptTitle, promptSubtitle)
 	end
 	table.clear(siriusValues.moderatorPromptConnections)
 
-	moderatorDetectionPrompt.Size = UDim2.new(0, 283, 0, 175)
+	moderatorDetectionPrompt.Size = siriusValues.fitSize(283, 175, 24, 110)
 	moderatorDetectionPrompt.UIGradient.Offset = Vector2.new(0, 1)
 	wipeTransparency(moderatorDetectionPrompt, 1, true)
 	moderatorDetectionPrompt.Serverhop.Visible = true
@@ -20762,7 +21020,7 @@ function promptModerator(player, role, promptTitle, promptSubtitle)
 	end
 
 	tweenService:Create(moderatorDetectionPrompt, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {BackgroundTransparency = 0}):Play()
-	tweenService:Create(moderatorDetectionPrompt, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {Size = UDim2.new(0, 300, 0, 186)}):Play()
+	tweenService:Create(moderatorDetectionPrompt, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {Size = siriusValues.fitSize(300, 186, 24, 110)}):Play()
 	tweenService:Create(moderatorDetectionPrompt.UIGradient, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {Offset = Vector2.new(0, 0.65)}):Play()
 	tweenService:Create(moderatorDetectionPrompt.Title, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
 	tweenService:Create(moderatorDetectionPrompt.Subtitle, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
@@ -20790,7 +21048,7 @@ function promptModerator(player, role, promptTitle, promptSubtitle)
 		table.clear(siriusValues.moderatorPromptConnections)
 
 		tweenService:Create(moderatorDetectionPrompt, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
-		tweenService:Create(moderatorDetectionPrompt, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Size = UDim2.new(0, 283, 0, 175)}):Play()
+		tweenService:Create(moderatorDetectionPrompt, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Size = siriusValues.fitSize(283, 175, 24, 110)}):Play()
 		tweenService:Create(moderatorDetectionPrompt.UIGradient, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Offset = Vector2.new(0, 1)}):Play()
 		tweenService:Create(moderatorDetectionPrompt.Title, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
 		tweenService:Create(moderatorDetectionPrompt.Subtitle, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
@@ -21066,7 +21324,7 @@ local function openScriptSearch()
 	scriptSaveState.topButton.Size = UDim2.new(0, 36, 0, 34)
 	scriptSaveState.topButton.BackgroundTransparency = 1
 
-	scriptSearch.Size = UDim2.new(0, 480, 0, 23)
+	scriptSearch.Size = siriusValues.fitSize(480, 23)
 	scriptSearch.Position = UDim2.new(0.5, 0, 0.5, 0)
 	scriptSearch.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	scriptSearch.BackgroundTransparency = 1
@@ -21096,7 +21354,7 @@ local function openScriptSearch()
 	scriptSaveState.setBookmarkVisual(scriptSaveState.topButton.BookmarkVisual, false, true)
 
 	tweenService:Create(scriptSearch, TweenInfo.new(.5,Enum.EasingStyle.Quint),  {BackgroundTransparency = 0}):Play()
-	tweenService:Create(scriptSearch, TweenInfo.new(.5,Enum.EasingStyle.Quint),  {Size = UDim2.new(0, 580, 0, 43)}):Play()
+	tweenService:Create(scriptSearch, TweenInfo.new(.5,Enum.EasingStyle.Quint),  {Size = siriusValues.fitSize(580, 43)}):Play()
 	tweenService:Create(scriptSearch.Shadow, TweenInfo.new(.5,Enum.EasingStyle.Quint),  {ImageTransparency = 0.85}):Play()
 	task.wait(0.03)
 	tweenService:Create(scriptSearch.Icon, TweenInfo.new(.5,Enum.EasingStyle.Quint),  {ImageTransparency = 0}):Play()
@@ -21147,7 +21405,7 @@ local function closeScriptSearch()
 
 	scriptSearch.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	scriptSearch.UIGradient.Enabled = false
-	tweenService:Create(scriptSearch, TweenInfo.new(0.4, Enum.EasingStyle.Quint),  {Size = UDim2.new(0, 520, 0, 0)}):Play()
+	tweenService:Create(scriptSearch, TweenInfo.new(0.4, Enum.EasingStyle.Quint),  {Size = siriusValues.fitSize(520, 0)}):Play()
 	scriptSearch.SearchBox:ReleaseFocus()
 
 	task.wait(0.5)
@@ -21586,7 +21844,7 @@ local function confirmScriptRunMorph(scriptTitle, providerName, imageUrl, result
 		sourcePillStroke.Color = accentSoft
 		sourcePillStroke.Transparency = 1
 		sourcePillStroke.Parent = sourcePill
-		local sourceLabel = makeText(sourcePill, "MorphSource", "Source  •  "..providerName, UDim2.new(0, 0, 0, 0), UDim2.new(1, 0, 1, 0), Enum.Font.GothamMedium, 11, Color3.fromRGB(190, 196, 204), 45)
+		local sourceLabel = makeText(sourcePill, "MorphSource", "Source  ‚Ä¢  "..providerName, UDim2.new(0, 0, 0, 0), UDim2.new(1, 0, 1, 0), Enum.Font.GothamMedium, 11, Color3.fromRGB(190, 196, 204), 45)
 
 		if imageUrl then
 			preview.Image = imageUrl
@@ -21785,7 +22043,7 @@ local function confirmScriptRunMorph(scriptTitle, providerName, imageUrl, result
 
 		local openMotion = TweenInfo.new(0.58, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 		local contentMotion = TweenInfo.new(0.44, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-		tweenService:Create(scriptSearch, openMotion, {Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(0, 520, 0, 205), BackgroundTransparency = 0.02}):Play()
+		tweenService:Create(scriptSearch, openMotion, {Position = UDim2.new(0.5, 0, 0.5, 0), Size = siriusValues.fitSize(520, 205), BackgroundTransparency = 0.02}):Play()
 		tweenService:Create(scriptSearch.Shadow, openMotion, {ImageTransparency = 0.86}):Play()
 		tweenService:Create(scriptSearch.UIGradient, openMotion, {Offset = Vector2.new(0, 0.5)}):Play()
 		if morphShadowGradient then
@@ -22004,7 +22262,7 @@ local function confirmScriptRun(scriptTitle, providerName, imageUrl, result)
 	sourceLabel.Font = Enum.Font.GothamMedium
 	sourceLabel.Position = UDim2.new(0, 132, 0, 150)
 	sourceLabel.Size = UDim2.new(1, -158, 0, 20)
-	sourceLabel.Text = "Source • "..providerName
+	sourceLabel.Text = "Source ‚Ä¢ "..providerName
 	sourceLabel.TextColor3 = Color3.fromRGB(185, 185, 194)
 	sourceLabel.TextSize = 12
 	sourceLabel.TextTransparency = 1
@@ -22637,7 +22895,7 @@ function scriptSaveState.showSearchView()
 
 	tweenService:Create(scriptSearch.NoScriptsTitle, TweenInfo.new(0.2, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
 	tweenService:Create(scriptSearch.NoScriptsDesc, TweenInfo.new(0.2, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
-	tweenService:Create(scriptSearch, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {Size = UDim2.new(0, 580, 0, 43)}):Play()
+	tweenService:Create(scriptSearch, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {Size = siriusValues.fitSize(580, 43)}):Play()
 	tweenService:Create(scriptSearch.Icon, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {Position = UDim2.new(0.04, 0, 0.5, 0)}):Play()
 	tweenService:Create(scriptSearch.SearchBox, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {Position = UDim2.new(0.509, 0, 0.5, 0)}):Play()
 	tweenService:Create(scriptSearch.UIGradient, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {Offset = Vector2.new(0, 2)}):Play()
@@ -23028,7 +23286,7 @@ local function createScript(result, animationIndex, animationMode)
 		result.dislikes = detail.dislikes
 
 		if savedAnimation then
-			newScript.ScriptAuthor.Text = "by "..detail.author.." • "..providerName
+			newScript.ScriptAuthor.Text = "by "..detail.author.." ‚Ä¢ "..providerName
 			newScript.ScriptDescription.Visible = false
 			newScript.Tags.Visible = false
 			return
@@ -23051,7 +23309,7 @@ local function createScript(result, animationIndex, animationMode)
 			newScript.Tags.Review.Visible = false
 		end
 
-		newScript.ScriptAuthor.Text = "uploaded by "..detail.author.." • "..providerName
+		newScript.ScriptAuthor.Text = "uploaded by "..detail.author.." ‚Ä¢ "..providerName
 		newScript.Tags.Verified.Visible = detail.verified or false
 		newScript.Tags.Visible = rowRevealed
 	end)
@@ -23062,7 +23320,7 @@ local function createScript(result, animationIndex, animationMode)
 
 	newScript.ScriptName.Text = scriptTitle
 	newScript.ScriptDescription.Text = result.description or (providerName == "Rscripts.net" and "Powered by Rscripts.net" or (providerName == "Roscripts.io" and "Powered by Roscripts.io" or "Loading script details..."))
-	newScript.ScriptAuthor.Text = (savedAnimation and "by " or "uploaded by ")..tostring(result.author or providerName).." • "..providerName
+	newScript.ScriptAuthor.Text = (savedAnimation and "by " or "uploaded by ")..tostring(result.author or providerName).." ‚Ä¢ "..providerName
 
 
 	newScript.Tags.Visible = false
@@ -23310,7 +23568,7 @@ function scriptSaveState.showSavedList()
 
 	local pageMotion = TweenInfo.new(0.54, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 
-	tweenService:Create(scriptSearch, pageMotion, {Size = UDim2.new(0, 580, 0, 529)}):Play()
+	tweenService:Create(scriptSearch, pageMotion, {Size = siriusValues.fitSize(580, 529)}):Play()
 	tweenService:Create(scriptSearch.UIGradient, pageMotion, {Offset = Vector2.new(0, 0.6)}):Play()
 	tweenService:Create(scriptSaveState.topButton, pageMotion, {Position = UDim2.new(1, -54, 0, 18), Size = UDim2.new(0, 38, 0, 38)}):Play()
 	tweenService:Create(scriptSearch.List, pageMotion, {Position = UDim2.new(0, 28, 0, 146), Size = UDim2.new(1, -56, 1, -164)}):Play()
@@ -23366,7 +23624,7 @@ local function securityDetection(title, content, link, gradient, actions)
 	newSecurityPrompt.Name = "SecurityPrompt"
 
 	wipeTransparency(newSecurityPrompt, 1, true)
-	newSecurityPrompt.Size = UDim2.new(0, 478, 0, 150)
+	newSecurityPrompt.Size = siriusValues.fitSize(478, 150, 24, 120)
 
 	newSecurityPrompt.Title.Text = title
 	newSecurityPrompt.Subtitle.Text = content
@@ -23614,7 +23872,7 @@ function searchScripts(query)
 		scriptSearch.List.Position = scriptSaveState.listPosition
 		scriptSearch.List.Size = scriptSaveState.listSize
 		scriptSearch.List.Visible = true
-		tweenService:Create(scriptSearch, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Size = UDim2.new(0, 580, 0, 529)}):Play()
+		tweenService:Create(scriptSearch, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Size = siriusValues.fitSize(580, 529)}):Play()
 		tweenService:Create(scriptSearch.Icon, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Position = UDim2.new(0.054, 0, 0.056, 0)}):Play()
 		tweenService:Create(scriptSearch.SearchBox, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Position = UDim2.new(0.523, 0, 0.056, 0)}):Play()
 		tweenService:Create(scriptSearch.List, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Position = scriptSaveState.listPosition, Size = scriptSaveState.listSize}):Play()
@@ -23813,8 +24071,28 @@ function siriusValues.getResponsiveSmartBarSize(open)
 		width += open and 76 or 62
 	end
 	local viewport = siriusValues.getSiriusViewportSize()
-	width = math.min(width, math.max(336, viewport.X - 24))
+	-- The UIScale we apply on top-level panels divides offset sizes;
+	-- so the *effective* size on screen is width * scale. Make sure
+	-- width * scale never crosses the viewport, and on phones boost
+	-- the minimum so the search field stays usable.
+	local scale = math.max((siriusValues.responsiveScale and siriusValues.responsiveScale()) or 1, 0.0001)
+	local minWidth = 336
+	if siriusValues.isPhone and siriusValues.isPhone() then
+		minWidth = 280
+		height = open and 66 or 60
+	end
+	local maxWidth = math.max(minWidth, (viewport.X - 24) / scale)
+	width = math.min(width, maxWidth)
 	return UDim2.new(0, width, 0, height)
+end
+
+-- Y offset for bottom-anchored panels (smartBar, toggle, toasts).
+-- Push them further up on phones/tablets to avoid the device gesture
+-- strip / Roblox chat bar. Passes through `designOffset` on desktop.
+function siriusValues.bottomY(designOffset)
+	local inset = 0
+	if siriusValues.bottomSafeInset then inset = siriusValues.bottomSafeInset() end
+	return designOffset - inset
 end
 
 local function cancelSmartBarOptionTweens(button)
@@ -23865,9 +24143,9 @@ local function openSmartBar()
 	toggle.Visible = not checkSetting("Hide Toggle Button").current
 
 	if checkTools() then
-		toggle.Position = UDim2.new(0.5,0,1,-68)
+		toggle.Position = UDim2.new(0.5,0,1,siriusValues.bottomY(-68))
 	else
-		toggle.Position = UDim2.new(0.5, 0, 1, -5)
+		toggle.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-5))
 	end
 
 	for _, button in ipairs(getSmartBarButtons()) do
@@ -23884,9 +24162,9 @@ local function openSmartBar()
 	tweenService:Create(coreGui.RobloxGui.Backpack, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Position = UDim2.new(-0.325,0,0,0)}):Play()
 
 	tweenService:Create(toggle, TweenInfo.new(0.82, Enum.EasingStyle.Quint), {Rotation = 0}):Play()
-	tweenService:Create(smartBar, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, -12)}):Play()
-	tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, -110)}):Play()
-	tweenService:Create(toggle, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, -85)}):Play()
+	tweenService:Create(smartBar, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-12))}):Play()
+	tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-110))}):Play()
+	tweenService:Create(toggle, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-85))}):Play()
 	tweenService:Create(smartBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Size = siriusValues.getResponsiveSmartBarSize(true)}):Play()
 	tweenService:Create(smartBar, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {BackgroundTransparency = 0.18}):Play()
 	tweenService:Create(smartBar.Shadow, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {ImageTransparency = 0.7}):Play()
@@ -23946,12 +24224,12 @@ local function closeSmartBar()
 
 	-- If tools, move the toggle
 	if checkTools() then
-		tweenService:Create(toggle, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5,0,1,-68)}):Play()
-		tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, -90)}):Play()
+		tweenService:Create(toggle, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5,0,1,siriusValues.bottomY(-68))}):Play()
+		tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-90))}):Play()
 		tweenService:Create(toggle, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Rotation = 180}):Play()
 	else
-		tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, -28)}):Play()
-		tweenService:Create(toggle, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, -5)}):Play()
+		tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-28))}):Play()
+		tweenService:Create(toggle, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-5))}):Play()
 		tweenService:Create(toggle, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Rotation = 180}):Play()
 	end
 end
@@ -24353,7 +24631,7 @@ local function createPlayer(player)
 				}
 
 				task.spawn(function()
-					tweenService:Create(toggle, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, -85)}):Play()
+					tweenService:Create(toggle, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-85))}):Play()
 					closePanel("Playerlist", true)
 					preservingSelectedAction = false
 					clearPlayerActions()
@@ -24601,7 +24879,7 @@ local function openSettings()
 			settingsPanel.SettingTypes.ScrollBarImageTransparency = 1
 		end
 		refreshSettingsCategoryScroll()
-		settingsPanel.Size = UDim2.new(0, 552, 0, 346)
+		settingsPanel.Size = siriusValues.fitSize(552, 346)
 		settingsPanel.Title.Position = UDim2.new(0.045, 0, 0.057, 0)
 
 	settingsPanel.Title.Text = "Settings"
@@ -24612,7 +24890,7 @@ local function openSettings()
 	local contentTween = TweenInfo.new(0.34, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 	local cardTween = TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 
-	tweenService:Create(settingsPanel, panelOpenTween, {Size = UDim2.new(0, 613, 0, 384)}):Play()
+	tweenService:Create(settingsPanel, panelOpenTween, {Size = siriusValues.fitSize(613, 384)}):Play()
 	tweenService:Create(settingsPanel, panelFadeTween, {BackgroundTransparency = 0}):Play()
 	tweenService:Create(settingsPanel.UIGradient, TweenInfo.new(0.58, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Offset = Vector2.new(0, 1.05)}):Play()
 	tweenService:Create(settingsPanel.Shadow, panelOpenTween, {ImageTransparency = 0.66}):Play()
@@ -24702,7 +24980,7 @@ local function closeSettings()
 		end
 	end
 
-	tweenService:Create(settingsPanel, panelCloseTween, {Size = UDim2.new(0, 584, 0, 18)}):Play()
+	tweenService:Create(settingsPanel, panelCloseTween, {Size = siriusValues.fitSize(584, 18)}):Play()
 	tweenService:Create(settingsPanel, panelFadeTween, {BackgroundTransparency = 1}):Play()
 
 	task.wait(0.3)
