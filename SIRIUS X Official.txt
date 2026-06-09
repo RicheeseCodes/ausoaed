@@ -7050,6 +7050,142 @@ do
 	siriusValues.onResponsiveChange(applyMobileContainers)
 end
 
+-- ============================================================
+-- Home section layout fitter
+-- The asset positions the four home cards (Server / Friends /
+-- User / Client) with fixed pixel offsets that assume the PC
+-- viewport. On a mobile viewport with different aspect ratio
+-- the cards overlap. We capture the original sizes once and
+-- re-lay them out on every openHome (and viewport change) so
+-- they always sit in a clean row or 2x2 grid that fits.
+-- ============================================================
+do
+	local homeOriginals = nil
+	local layoutOrder = {Server = 1, Friends = 2, User = 3, Client = 4}
+
+	local function captureHomeOriginals()
+		if homeOriginals then return end
+		if not homeContainer or not homeContainer:FindFirstChild("Interactions") then return end
+		homeOriginals = {}
+		for _, item in ipairs(homeContainer.Interactions:GetChildren()) do
+			if item:IsA("GuiObject") then
+				homeOriginals[item.Name] = {
+					Position    = item.Position,
+					Size        = item.Size,
+					AnchorPoint = item.AnchorPoint,
+				}
+			end
+		end
+	end
+
+	function siriusValues.relayoutHomeItems()
+		if not homeContainer or not homeContainer:FindFirstChild("Interactions") then return end
+		captureHomeOriginals()
+		if not homeOriginals then return end
+
+		local items = {}
+		for _, item in ipairs(homeContainer.Interactions:GetChildren()) do
+			if item:IsA("GuiObject") and homeOriginals[item.Name] then
+				table.insert(items, item)
+			end
+		end
+		table.sort(items, function(a, b)
+			return (layoutOrder[a.Name] or 99) < (layoutOrder[b.Name] or 99)
+		end)
+
+		-- restore original sizes (the open/close animation only mutates
+		-- Position and Size by fixed offsets, so re-applying the design
+		-- size on every open keeps the cards crisp).
+		for _, item in ipairs(items) do
+			local design = homeOriginals[item.Name]
+			item.AnchorPoint = Vector2.new(0, 0)
+			item.Size = design.Size
+		end
+
+		local cam = workspace.CurrentCamera or camera
+		local vp = (cam and cam.ViewportSize) or Vector2.new(1280, 720)
+		local hPad, vPad = 18, 18
+
+		-- Pick a row layout if the viewport is wide enough to hold every
+		-- card in one row; otherwise fall back to a 2-column grid.
+		local rowWidth, maxRowHeight = 0, 0
+		for i, item in ipairs(items) do
+			rowWidth = rowWidth + item.Size.X.Offset
+			if i < #items then rowWidth = rowWidth + hPad end
+			if item.Size.Y.Offset > maxRowHeight then
+				maxRowHeight = item.Size.Y.Offset
+			end
+		end
+
+		if rowWidth <= vp.X - 60 then
+			local startX = math.floor((vp.X - rowWidth) / 2)
+			local y = math.floor((vp.Y - maxRowHeight) / 2 + 30)
+			for _, item in ipairs(items) do
+				item.Position = UDim2.new(0, startX, 0, y)
+				startX = startX + item.Size.X.Offset + hPad
+			end
+		else
+			local function w(i) return items[i] and items[i].Size.X.Offset or 0 end
+			local function h(i) return items[i] and items[i].Size.Y.Offset or 0 end
+			local col1W = math.max(w(1), w(3))
+			local col2W = math.max(w(2), w(4))
+			local row1H = math.max(h(1), h(2))
+			local row2H = math.max(h(3), h(4))
+			local gridW = col1W + hPad + col2W
+			local gridH = row1H + vPad + row2H
+			local startX = math.floor((vp.X - gridW) / 2)
+			local startY = math.floor((vp.Y - gridH) / 2 + 30)
+			for i, item in ipairs(items) do
+				local col = (i - 1) % 2
+				local row = math.floor((i - 1) / 2)
+				local x = startX + (col == 0 and 0 or (col1W + hPad))
+				local y = startY + (row == 0 and 0 or (row1H + vPad))
+				item.Position = UDim2.new(0, x, 0, y)
+			end
+		end
+	end
+
+	-- Keep the layout fresh on responsive viewport changes too.
+	siriusValues.onResponsiveChange(function()
+		if homeContainer and homeContainer.Visible then
+			siriusValues.relayoutHomeItems()
+		end
+	end)
+end
+
+-- ============================================================
+-- Smart-bar toggle (the chevron that opens/closes the smartbar)
+-- Make sure it can receive input on every device. We add an
+-- invisible larger hitbox for fingertips; the real toggle click
+-- handler is wired further down (search "toggle.MouseButton1Click")
+-- and ALSO wired to this hitbox so taps on the padded area work.
+-- ============================================================
+do
+	pcall(function()
+		toggle.Active = true
+		toggle.Selectable = true
+		toggle.AutoButtonColor = false
+		toggle.ZIndex = math.max(toggle.ZIndex or 1, 200)
+	end)
+
+	if not toggle:FindFirstChild("__SiriusToggleHitbox") then
+		local hitbox = Instance.new("TextButton")
+		hitbox.Name = "__SiriusToggleHitbox"
+		hitbox.BackgroundTransparency = 1
+		hitbox.Text = ""
+		hitbox.AutoButtonColor = false
+		hitbox.AnchorPoint = Vector2.new(0.5, 0.5)
+		hitbox.Position = UDim2.new(0.5, 0, 0.5, 0)
+		hitbox.Size = UDim2.new(1.8, 16, 1.8, 16)
+		hitbox.ZIndex = (toggle.ZIndex or 200) + 1
+		hitbox.Active = true
+		hitbox.Selectable = true
+		hitbox.Modal = false
+		hitbox.Parent = toggle
+		siriusValues.toggleHitbox = hitbox
+	end
+end
+
 characterRuntime.characterScrollFadeReady = false
 characterRuntime.characterScrollFadeBound = false
 characterRuntime.characterScrollFadeOverlay = nil
@@ -21075,6 +21211,7 @@ local function openHome()
 	if debounce then return end
 	debounce = true
 	homeContainer.Visible = true
+	if siriusValues.relayoutHomeItems then siriusValues.relayoutHomeItems() end
 
 	local homeBlur = Instance.new("BlurEffect", lighting)
 	homeBlur.Size = 0
@@ -24005,28 +24142,15 @@ function siriusValues.getResponsiveSmartBarSize(open)
 		width += open and 76 or 62
 	end
 	local viewport = siriusValues.getSiriusViewportSize()
-	-- The UIScale we apply on top-level panels divides offset sizes;
-	-- so the *effective* size on screen is width * scale. Make sure
-	-- width * scale never crosses the viewport, and on phones boost
-	-- the minimum so the search field stays usable.
-	local scale = math.max((siriusValues.responsiveScale and siriusValues.responsiveScale()) or 1, 0.0001)
-	local minWidth = 336
-	if siriusValues.isPhone and siriusValues.isPhone() then
-		minWidth = 280
-		height = open and 66 or 60
-	end
-	local maxWidth = math.max(minWidth, (viewport.X - 24) / scale)
-	width = math.min(width, maxWidth)
+	width = math.min(width, math.max(336, viewport.X - 24))
 	return UDim2.new(0, width, 0, height)
 end
 
--- Y offset for bottom-anchored panels (smartBar, toggle, toasts).
--- Push them further up on phones/tablets to avoid the device gesture
--- strip / Roblox chat bar. Passes through `designOffset` on desktop.
+-- Pass-through: keep the exact PC Y offset everywhere. The auto-scale
+-- already shrinks the whole UI to fit smaller screens so the bottom
+-- edge stays inside the viewport without us shifting it manually.
 function siriusValues.bottomY(designOffset)
-	local inset = 0
-	if siriusValues.bottomSafeInset then inset = siriusValues.bottomSafeInset() end
-	return designOffset - inset
+	return designOffset
 end
 
 local function cancelSmartBarOptionTweens(button)
@@ -26602,6 +26726,16 @@ toggle.MouseButton1Click:Connect(function()
 		openSmartBar()
 	end
 end)
+
+if siriusValues.toggleHitbox then
+	siriusValues.toggleHitbox.MouseButton1Click:Connect(function()
+		if smartBarOpen then
+			closeSmartBar()
+		else
+			openSmartBar()
+		end
+	end)
+end
 
 characterPanel.Interactions.Reset.MouseButton1Click:Connect(function()
 	resetSliders()
