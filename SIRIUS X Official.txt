@@ -6772,11 +6772,14 @@ local toastsContainer = UI.Toasts
 -- ============================================================
 do
 	local AUTOSCALE_TAG  = "__SiriusAutoScale"
-	local BASE_DESKTOP   = Vector2.new(1600, 900)
-	local BASE_TABLET    = Vector2.new(1180, 820)
-	local BASE_PHONE     = Vector2.new( 900, 520)
-	local MIN_SCALE      = 0.55
-	local MAX_SCALE      = 1.45
+	-- One shared "design" viewport for every device. We never scale UP
+	-- above 1.0 -- so on PC (and most modern phones in landscape that
+	-- match or exceed this size) the UI renders at native size and
+	-- looks identical to PC. Only smaller screens get scaled down so
+	-- panels still fit.
+	local BASE_DESIGN    = Vector2.new(1280, 720)
+	local MIN_SCALE      = 0.60
+	local MAX_SCALE      = 1.00
 	local SAFE_PAD       = 6   -- px gap kept between any panel edge and viewport edge
 
 	local autoScale = {
@@ -6825,15 +6828,10 @@ do
 		end
 
 		local category = classifyDevice(viewport)
-		local base = BASE_DESKTOP
-		if category == "phone" then
-			base = BASE_PHONE
-		elseif category == "tablet" then
-			base = BASE_TABLET
-		end
-
-		-- Use min of axis ratios so panels never overflow either axis.
-		local s = math.min(viewport.X / base.X, viewport.Y / base.Y)
+		-- Same design viewport on every device -> identical look across
+		-- PC/tablet/phone. min(axis ratios) so panels never overflow
+		-- either axis, then clamped so we never UPscale past 1.0 (PC).
+		local s = math.min(viewport.X / BASE_DESIGN.X, viewport.Y / BASE_DESIGN.Y)
 		return math.clamp(s, MIN_SCALE, MAX_SCALE), category, viewport
 	end
 
@@ -6864,17 +6862,17 @@ do
 		return UDim2.new(0, math.min(w, maxW), 0, math.min(h, maxH))
 	end
 
-	-- Safe insets for bottom-anchored elements (smartBar/toggle/toasts).
-	-- On phones we raise things ~30 px so the Roblox chat bar and the
-	-- iOS gesture strip don't clip our UI.
+	-- Safe insets for bottom-anchored elements (smartBar/toggle/toasts)
+	-- and the top notification column. Kept small so PC-look is preserved
+	-- and we only nudge things off device hardware (notch, gesture bar).
 	function siriusValues.bottomSafeInset()
-		if autoScale.category == "phone"  then return 32 end
-		if autoScale.category == "tablet" then return 18 end
+		if autoScale.category == "phone"  then return 14 end
+		if autoScale.category == "tablet" then return 8  end
 		return 0
 	end
 	function siriusValues.topSafeInset()
-		if autoScale.category == "phone"  then return 14 end
-		if autoScale.category == "tablet" then return 6  end
+		if autoScale.category == "phone"  then return 10 end
+		if autoScale.category == "tablet" then return 4  end
 		return 0
 	end
 
@@ -7005,13 +7003,13 @@ do
 end
 
 -- ============================================================
--- Mobile container overrides
--- The interface asset positions notification/toast columns and a
--- few other floating containers using fixed pixel offsets that
--- assume a desktop viewport. On phones (and tablets in portrait)
--- those offsets push the elements past the visible edge. We
--- capture the design values once and reposition on every
--- responsive change.
+-- Mobile container nudges (intentionally minimal)
+-- The user wants the PC look on every device, so we DO NOT
+-- override layouts -- we only shift the top-anchored container
+-- (notificationContainer) down past the device safe-area inset
+-- so its first toast isn't clipped by a phone notch / status
+-- bar / Roblox chat bar. Everything else uses the exact PC
+-- design coordinates.
 -- ============================================================
 do
 	local designs = {}
@@ -7030,74 +7028,24 @@ do
 	end
 
 	local function applyMobileContainers()
-		local category = siriusValues.deviceCategory()
-		local vp       = siriusValues.viewportSize()
-		local scale    = math.max(siriusValues.responsiveScale(), 0.0001)
-		local bottom   = siriusValues.bottomSafeInset()
-		local top      = siriusValues.topSafeInset()
+		local top    = siriusValues.topSafeInset()
 
-		-- Notification column (top right). On phones it lives just under
-		-- the top safe inset, on tablets shifted in a little, and on
-		-- desktops we leave the design alone.
-		do
-			local d = captureDesign(notificationContainer)
-			if d then
-				if category == "phone" then
-					notificationContainer.AnchorPoint = Vector2.new(1, 0)
-					local maxWidth = math.min(330, (vp.X - 28) / scale * 0.6)
-					notificationContainer.Size     = UDim2.new(0, maxWidth, 1, -(top + 90))
-					notificationContainer.Position = UDim2.new(1, -10, 0, top + 8)
-				elseif category == "tablet" then
-					notificationContainer.AnchorPoint = d.AnchorPoint
-					notificationContainer.Size        = d.Size
-					notificationContainer.Position    = UDim2.new(
-						d.Position.X.Scale, d.Position.X.Offset,
-						d.Position.Y.Scale, d.Position.Y.Offset + top)
-				else
-					notificationContainer.AnchorPoint = d.AnchorPoint
-					notificationContainer.Position    = d.Position
-					notificationContainer.Size        = d.Size
-				end
-			end
-		end
-
-		-- Toasts column (bottom, centred). Raise it on mobile so the
-		-- chat bar / gesture strip doesn't sit on top of it.
-		do
-			local d = captureDesign(toastsContainer)
-			if d then
-				if category ~= "desktop" then
-					toastsContainer.AnchorPoint = d.AnchorPoint
-					toastsContainer.Size        = d.Size
-					-- design Y offset (-110, -90, -28 depending on state)
-					-- gets shifted upward by bottom safe inset; we only
-					-- mutate the resting position here -- the smartBar
-					-- open/close code reassigns this regardless.
-					toastsContainer.Position    = UDim2.new(
-						d.Position.X.Scale, d.Position.X.Offset,
-						d.Position.Y.Scale, d.Position.Y.Offset - bottom)
-				else
-					toastsContainer.AnchorPoint = d.AnchorPoint
-					toastsContainer.Position    = d.Position
-					toastsContainer.Size        = d.Size
-				end
-			end
-		end
-
-		-- Starlight (background glow) follows the viewport so we always
-		-- cover it on phones in landscape.
-		do
-			local d = captureDesign(starlight)
-			if d then
-				starlight.AnchorPoint = d.AnchorPoint
-				starlight.Position    = d.Position
-				starlight.Size        = UDim2.new(1, 0, 1, 0)
+		-- Notification column (top): just shift it past the safe inset.
+		local d = captureDesign(notificationContainer)
+		if d then
+			notificationContainer.AnchorPoint = d.AnchorPoint
+			notificationContainer.Size        = d.Size
+			if top > 0 then
+				notificationContainer.Position = UDim2.new(
+					d.Position.X.Scale, d.Position.X.Offset,
+					d.Position.Y.Scale, d.Position.Y.Offset + top)
+			else
+				notificationContainer.Position = d.Position
 			end
 		end
 	end
 
 	siriusValues.applyMobileContainers = applyMobileContainers
-	-- run once now, then on every responsive recompute
 	applyMobileContainers()
 	siriusValues.onResponsiveChange(applyMobileContainers)
 end
@@ -10627,8 +10575,8 @@ do
 			restorePanel = nil
 		}
 	local playerActionPickerDefaultSize = Vector2.new(390, 520)
-	local playerActionPickerMinSize = Vector2.new(300, 320)
-	local playerActionPickerMaxSize = Vector2.new(460, 560)
+	local playerActionPickerMinSize = Vector2.new(360, 360)
+	local playerActionPickerMaxSize = Vector2.new(440, 540)
 	local playerActionPickerCurrentSize = playerActionPickerDefaultSize
 	siriusValues.selectActionStyle = {
 		panel = Color3.fromRGB(18, 18, 18),
@@ -10715,14 +10663,8 @@ do
 	end
 	local function clampPlayerActionPickerSize(size)
 		local rootSize = siriusValues.getPlayerActionPickerRootSize()
-		-- account for the per-panel UIScale so the on-screen pixel size
-		-- never crosses the viewport (panel uses fromOffset, which UIScale
-		-- scales up).
-		local responsiveScale = (siriusValues.responsiveScale and siriusValues.responsiveScale()) or 1
-		responsiveScale = math.max(responsiveScale, 0.0001)
-		local pad = (siriusValues.isPhone and siriusValues.isPhone()) and 24 or 40
-		local availableWidth = math.max(260, (rootSize.X - pad) / responsiveScale)
-		local availableHeight = math.max(280, (rootSize.Y - 72) / responsiveScale)
+		local availableWidth = math.max(300, rootSize.X - 40)
+		local availableHeight = math.max(320, rootSize.Y - 72)
 		local minWidth = math.min(playerActionPickerMinSize.X, availableWidth)
 		local minHeight = math.min(playerActionPickerMinSize.Y, availableHeight)
 		local maxWidth = math.max(minWidth, math.min(playerActionPickerMaxSize.X, availableWidth))
@@ -13517,11 +13459,7 @@ local function ensurePlayerActionPicker()
 		panel.Name = "SelectActionsPanel"
 		panel.AnchorPoint = Vector2.new(0.5, 0.5)
 		panel.Position = UDim2.new(0.5, 0, 0.5, 0)
-		do
-			local initialSize = clampPlayerActionPickerSize(playerActionPickerDefaultSize)
-			playerActionPickerCurrentSize = initialSize
-			panel.Size = UDim2.fromOffset(initialSize.X, initialSize.Y)
-		end
+		panel.Size = UDim2.fromOffset(390, 520)
 		panel.BackgroundColor3 = siriusValues.selectActionStyle.panel
 		panel.BackgroundTransparency = 0
 		panel.BorderSizePixel = 0
@@ -15258,11 +15196,7 @@ local function ensurePlayerActionPicker()
 	panel.Name = "ParameterEnum"
 	panel.AnchorPoint = Vector2.new(0.5, 0.5)
 	panel.Position = UDim2.new(0.5, 0, 0.5, 0)
-	do
-		local initialSize = clampPlayerActionPickerSize(playerActionPickerDefaultSize)
-		playerActionPickerCurrentSize = initialSize
-		panel.Size = UDim2.fromOffset(initialSize.X, initialSize.Y)
-	end
+	panel.Size = UDim2.fromOffset(playerActionPickerDefaultSize.X, playerActionPickerDefaultSize.Y)
 	panel.BackgroundTransparency = 1
 	panel.BorderSizePixel = 0
 	panel.AutoButtonColor = false
