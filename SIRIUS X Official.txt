@@ -6805,8 +6805,46 @@ do
 	local PANEL_SCALE_TAG = "__SiriusPerPanelScale"
 	SiriusResponsive.panelScales = setmetatable({}, {__mode = "k"})
 
+	-- Children we must NEVER attach a UIScale to:
+	--  * Full-screen container frames (Size scale ~1,1): scaling them
+	--    shrinks the WHOLE coordinate space and displaces everything
+	--    anchored inside (e.g. the player-action picker would render
+	--    tiny in the top-left and player rows move out from under the
+	--    finger). Their inner content is already laid out by scale
+	--    anchors / has its own responsive clamp.
+	--  * Objects that already own a UIScale (Roblox allows only one
+	--    per instance) ‚Äî e.g. spectateBar's animation "Scale".
+	-- Matched by NAME so it's robust regardless of load order.
+	local SKIP_SCALE = {
+		Starlight     = true,   -- full-screen backdrop glow
+		Home          = true,   -- full-screen blur backdrop; cards use scale anchors
+		SiriusPlayerActionPicker = true, -- full-screen 1,1 container
+		SiriusSpectateControl    = true, -- already has its own UIScale
+		-- Notifications / Toasts are NOT skipped: they're edge-anchored
+		-- columns, so a UIScale shrinks them toward their corner and
+		-- keeps them sized consistently with the rest of the UI. The
+		-- isFullScreen() guard below still skips them if the asset made
+		-- them genuinely full-screen.
+	}
+
+	local function isFullScreen(child)
+		local okSz, sz = pcall(function() return child.Size end)
+		if okSz and sz then
+			-- treat >=0.98 scale on both axes (with no large negative
+			-- offset) as a full-screen container.
+			if sz.X.Scale >= 0.98 and sz.Y.Scale >= 0.98 then return true end
+		end
+		return false
+	end
+
 	local function ensurePanelScale(child)
 		if not child or not child:IsA("GuiObject") then return nil end
+		if SKIP_SCALE[child.Name] then return nil end
+		-- Never add a 2nd UIScale (Roblox honours only one).
+		local already = child:FindFirstChildOfClass("UIScale")
+		if already and already.Name ~= PANEL_SCALE_TAG then return nil end
+		if isFullScreen(child) then return nil end
+
 		local existing = child:FindFirstChild(PANEL_SCALE_TAG)
 		if existing and existing:IsA("UIScale") then
 			SiriusResponsive.panelScales[child] = existing
@@ -7486,7 +7524,9 @@ function characterRuntime.refreshCharacterPanelScroll()
 			end
 		end
 
-		interactions.CanvasSize = UDim2.new(0, 0, 0, bottom + 28)
+		-- screen-space `bottom` -> local canvas px (√∑ panel scale)
+		local cs = siriusValues.scrollCanvasScale(interactions)
+		interactions.CanvasSize = UDim2.new(0, 0, 0, bottom / cs + 28)
 		characterRuntime.refreshCharacterPanelScrollFade()
 	end)
 end
@@ -8641,8 +8681,11 @@ local function refreshSettingsCategoryScroll()
 		local padding = settingTypes:FindFirstChild("SettingsCategoryScrollPadding") or settingTypes:FindFirstChildOfClass("UIPadding")
 		local paddingTop = padding and padding.PaddingTop.Offset or 0
 		local paddingBottom = padding and padding.PaddingBottom.Offset or 0
-		local contentHeight = math.ceil(layout.AbsoluteContentSize.Y + paddingTop + paddingBottom + 28)
-		local windowHeight = math.max(settingTypes.AbsoluteWindowSize.Y, 1)
+		-- Divide by the panel scale: AbsoluteContentSize / WindowSize
+		-- are screen px, CanvasSize offset is the scroller's local px.
+		local cs = siriusValues.scrollCanvasScale(settingTypes)
+		local contentHeight = math.ceil((layout.AbsoluteContentSize.Y + paddingTop + paddingBottom + 28) / cs)
+		local windowHeight = math.max(settingTypes.AbsoluteWindowSize.Y / cs, 1)
 		settingTypes.CanvasSize = UDim2.new(0, 0, 0, math.max(contentHeight, windowHeight + 1))
 		settingTypes.ScrollBarImageTransparency = 1
 	end)
@@ -10583,12 +10626,9 @@ do
 		parts = nil
 	}
 	function siriusValues.getPlayerActionPickerRootSize()
-		-- Use design-space viewport so the clamp picks panel sizes
-		-- in pre-scale pixels (the root UIScale shrinks them down to
-		-- camera pixels). Falls back gracefully before responsive is
-		-- initialised.
-		local r = siriusValues.responsive
-		if r and r.designViewport then return r.designViewport() end
+		-- The picker container is a full-screen frame that is NOT
+		-- scaled by the responsive system, so its size clamp must use
+		-- the REAL viewport.
 		local rootSize = camera and camera.ViewportSize or Vector2.new(1280, 720)
 		pcall(function()
 			if UI.AbsoluteSize.X > 0 and UI.AbsoluteSize.Y > 0 then
@@ -12614,9 +12654,9 @@ local function ensureLiveTrackPanel()
 	end
 
 		local function getLiveTrackScreenMax()
-		-- design-space so the live-track panel sizes pre-scale
-		local r = siriusValues.responsive
-		local rootSize = (r and r.designViewport and r.designViewport()) or UI.AbsoluteSize
+		-- live-track panel is in a full-screen (unscaled) container,
+		-- so use the real viewport.
+		local rootSize = UI.AbsoluteSize
 		if rootSize.X <= 0 or rootSize.Y <= 0 then
 			rootSize = camera.ViewportSize
 		end
@@ -13766,10 +13806,7 @@ local function ensurePlayerActionPicker()
 		}
 
 		local function getPickerRootSize()
-			-- design-space viewport so picker drag/center math uses
-			-- pre-scale pixels (the root UIScale shrinks the result)
-			local r = siriusValues.responsive
-			if r and r.designViewport then return r.designViewport() end
+			-- picker container is full-screen and unscaled ‚Üí real viewport
 			local rootSize = camera.ViewportSize
 			pcall(function()
 				if UI.AbsoluteSize.X > 0 and UI.AbsoluteSize.Y > 0 then
@@ -15678,9 +15715,7 @@ local function ensurePlayerActionPicker()
 	local resizeStartTopLeft
 
 	local function pickerRootSize()
-		-- design-space viewport (matches getPickerRootSize sibling)
-		local r = siriusValues.responsive
-		if r and r.designViewport then return r.designViewport() end
+		-- picker container is full-screen and unscaled ‚Üí real viewport
 		local rootSize = camera.ViewportSize
 		pcall(function()
 			if UI.AbsoluteSize.X > 0 and UI.AbsoluteSize.Y > 0 then
@@ -19132,11 +19167,12 @@ local function openPanel(panelName)
 		characterRuntime.resetCharacterPanelHeaderScroll()
 	end
 
-	tweenService:Create(toggle, TweenInfo.new(0.65, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, -(panelSize.Y.Offset + 95))}):Play()
+	local panelDockBottom, panelToggleY = siriusValues.panelDockY(panelSize.Y.Offset)
+	tweenService:Create(toggle, TweenInfo.new(0.65, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, panelToggleY)}):Play()
 
 	tweenService:Create(panel, TweenInfo.new(0.1, Enum.EasingStyle.Quint), {BackgroundTransparency = 0}):Play()
 	tweenService:Create(panel, TweenInfo.new(0.8, Enum.EasingStyle.Exponential), {Size = panelSize}):Play()
-	tweenService:Create(panel, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-90))}):Play()
+	tweenService:Create(panel, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, panelDockBottom)}):Play()
 	task.wait(0.1)
 	tweenService:Create(panel.Shadow, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {ImageTransparency = 0.7}):Play()
 	tweenService:Create(panel.Icon, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {ImageTransparency = 0}):Play()
@@ -23390,7 +23426,8 @@ function scriptSaveState.renderSavedResults()
 
 			local listLayout = scriptSearch.List:FindFirstChildOfClass("UIListLayout")
 			if listLayout then
-				local contentHeight = math.max(listLayout.AbsoluteContentSize.Y + 18, scriptSearch.List.AbsoluteWindowSize.Y)
+				local cs = siriusValues.scrollCanvasScale(scriptSearch.List)
+				local contentHeight = math.max(listLayout.AbsoluteContentSize.Y / cs + 18, scriptSearch.List.AbsoluteWindowSize.Y / cs)
 				scriptSearch.List.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
 			end
 		end)
@@ -23993,6 +24030,46 @@ function siriusValues.bottomY(designOffset)
 	if r and r.bottomInset then return designOffset - r.bottomInset() end
 	return designOffset
 end
+
+-- Dock geometry for an open smartBar panel (Character/Scripts/
+-- Playerlist). Returns the panel's bottom-anchored Y and the toggle
+-- chevron's Y, both as screen offsets-from-bottom, so the panel sits
+-- just above the (scaled) smartBar and the chevron just above the
+-- (scaled) panel ‚Äî exactly the PC stack, only shrunk on small
+-- screens. At scale 1 with no inset this reproduces the original
+-- -90 / -341 values.
+function siriusValues.panelDockY(panelHeightOffset)
+	local r = siriusValues.responsive
+	local s = (r and r.scale) or 1
+	if s < 0.0001 then s = 1 end
+	local bottomPad = (r and r.bottomInset and r.bottomInset()) or 0
+	local barH = 70 * s          -- open smartBar height, scaled
+	local gap  = 6
+	local panelBottom = -(12 + bottomPad + barH + gap)
+	local toggleY     = panelBottom - panelHeightOffset * s - 5
+	return panelBottom, toggleY
+end
+
+-- Scroll-canvas scale correction. A ScrollingFrame inside a panel
+-- that carries our per-panel UIScale reports AbsoluteContentSize /
+-- AbsolutePosition / AbsoluteSize in SCREEN pixels (already shrunk
+-- by the UIScale), but CanvasSize offsets live in the scroller's
+-- LOCAL space. So canvas heights computed from those Absolute*
+-- values must be divided by the panel scale, or the canvas comes
+-- out too short and the content can't be scrolled. Returns 1 when
+-- the scroller is NOT inside a scaled panel (full-screen containers).
+function siriusValues.scrollCanvasScale(obj)
+	local r = siriusValues.responsive
+	if not r then return 1 end
+	local a = obj
+	while a and a ~= UI do
+		if a:FindFirstChild("__SiriusPerPanelScale") then
+			return math.max(r.scale or 1, 0.0001)
+		end
+		a = a.Parent
+	end
+	return 1
+end
 function siriusValues.topY(designOffset)
 	local r = siriusValues.responsive
 	if r and r.topInset then return designOffset + r.topInset() end
@@ -24077,7 +24154,7 @@ local function openSmartBar()
 	pcall(function() tweenService:Create(coreGui.RobloxGui.Backpack, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Position = UDim2.new(-0.325,0,0,0)}):Play() end)
 
 	tweenService:Create(toggle, TweenInfo.new(0.82, Enum.EasingStyle.Quint), {Rotation = 0}):Play()
-	tweenService:Create(smartBar, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-12))}):Play()
+	tweenService:Create(smartBar, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = siriusValues.smartBarUserPos or UDim2.new(0.5, 0, 1, siriusValues.bottomY(-12))}):Play()
 	tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-110))}):Play()
 	tweenService:Create(toggle, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-85))}):Play()
 	tweenService:Create(smartBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Size = siriusValues.getResponsiveSmartBarSize(true)}):Play()
@@ -25711,9 +25788,10 @@ local function assembleSettings()
 
 						local listLayout = selectedList:FindFirstChildOfClass("UIListLayout")
 						if listLayout then
-							local contentHeight = math.max(listLayout.AbsoluteContentSize.Y + 26, 340)
+							local cs = siriusValues.scrollCanvasScale(selectedList)
+							local contentHeight = math.max(listLayout.AbsoluteContentSize.Y / cs + 26, 340)
 							selectedList.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
-							selectedList.ScrollBarImageTransparency = contentHeight > selectedList.AbsoluteWindowSize.Y + 8 and 0.55 or 1
+							selectedList.ScrollBarImageTransparency = contentHeight > (selectedList.AbsoluteWindowSize.Y / cs) + 8 and 0.55 or 1
 						end
 					end)
 				end
@@ -26614,6 +26692,53 @@ do
 	end
 end
 
+-- ============================================================
+-- Draggable smart bar. Press-and-drag the bar's BACKGROUND (not a
+-- button ‚Äî buttons consume their own input so taps still work) to
+-- reposition it. The user position persists across open/close: the
+-- open/close animations and the responsive re-dock check
+-- siriusValues.smartBarUserPos and respect it when set. A short tap
+-- (no movement) does not register as a drag.
+-- ============================================================
+do
+	local dragging = false
+	local moved = false
+	local dragStart, startPos
+	pcall(function() smartBar.Active = true end)
+
+	smartBar.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			moved = false
+			dragStart = Vector2.new(input.Position.X, input.Position.Y)
+			startPos = smartBar.Position
+		end
+	end)
+
+	userInputService.InputChanged:Connect(function(input)
+		if not dragging then return end
+		if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then return end
+		local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStart
+		if delta.Magnitude > 4 then moved = true end
+		if not moved then return end
+		local np = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		smartBar.Position = np
+		siriusValues.smartBarUserPos = np
+	end)
+
+	userInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = false
+		end
+	end)
+
+	-- Double-tap the toggle hitbox is not used; instead expose a reset
+	-- so a future control can clear the custom position if desired.
+	function siriusValues.resetSmartBarPosition()
+		siriusValues.smartBarUserPos = nil
+	end
+end
+
 characterPanel.Interactions.Reset.MouseButton1Click:Connect(function()
 	resetSliders()
 
@@ -27077,7 +27202,7 @@ if siriusValues.responsive and siriusValues.responsive.onChange and not siriusVa
 		pcall(function()
 			if smartBarOpen then
 				smartBar.Size = siriusValues.getResponsiveSmartBarSize(true)
-				smartBar.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-12))
+				smartBar.Position = siriusValues.smartBarUserPos or UDim2.new(0.5, 0, 1, siriusValues.bottomY(-12))
 				toggle.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-85))
 				toastsContainer.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-110))
 				if siriusValues.syncSmartBarCommandSearchLayout then
