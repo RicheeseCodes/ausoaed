@@ -26930,7 +26930,16 @@ for _, button in ipairs(scriptsPanel.Interactions.Selection:GetChildren()) do
 		tweenService:Create(button, TweenInfo.new(.25,Enum.EasingStyle.Quint),  {Size = origsize}):Play()
 
 		if button.Name == "Library" then
-			if not scriptSearch.Visible and not debounce then openScriptSearch() end
+			if not scriptSearch.Visible and not debounce then
+				-- Close the Scripting panel first (with its animation) so
+				-- it doesn't block the ScriptSearch view, then open search.
+				task.spawn(function()
+					if scriptsPanel.Visible then
+						closePanel("Scripts")
+					end
+					openScriptSearch()
+				end)
+			end
 		end
 		-- run action
 	end)
