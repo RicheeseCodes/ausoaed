@@ -19197,7 +19197,7 @@ local function closePanel(panelName, openingOther)
 		tweenService:Create(panel, TweenInfo.new(0.75, Enum.EasingStyle.Exponential, Enum.EasingDirection.InOut), {BackgroundTransparency = 1}):Play()
 		tweenService:Create(panel, TweenInfo.new(1.1, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = button.Size}):Play()
 		tweenService:Create(panel, TweenInfo.new(0.65, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.panelButtonStart(panelName)}):Play()
-		tweenService:Create(toggle, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-85))}):Play()
+		tweenService:Create(toggle, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.dockUDim(-85)}):Play()
 	end
 
 	-- Animate interactive elements
@@ -19253,11 +19253,11 @@ local function openPanel(panelName)
 	end
 
 	local panelDockBottom, panelToggleY = siriusValues.panelDockY(panelSize.Y.Offset)
-	tweenService:Create(toggle, TweenInfo.new(0.65, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, panelToggleY)}):Play()
+	tweenService:Create(toggle, TweenInfo.new(0.65, Enum.EasingStyle.Quint), {Position = siriusValues.dockUDimRaw(panelToggleY)}):Play()
 
 	tweenService:Create(panel, TweenInfo.new(0.1, Enum.EasingStyle.Quint), {BackgroundTransparency = 0}):Play()
 	tweenService:Create(panel, TweenInfo.new(0.8, Enum.EasingStyle.Exponential), {Size = panelSize}):Play()
-	tweenService:Create(panel, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, panelDockBottom)}):Play()
+	tweenService:Create(panel, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = siriusValues.dockUDimRaw(panelDockBottom)}):Play()
 	task.wait(0.1)
 	tweenService:Create(panel.Shadow, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {ImageTransparency = 0.7}):Play()
 	tweenService:Create(panel.Icon, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {ImageTransparency = 0}):Play()
@@ -21353,20 +21353,6 @@ local function openScriptSearch()
 	scriptSearch.BackgroundTransparency = 1
 	scriptSearch.SearchBox.Position = UDim2.new(0.509, 0, 0.5, 0)
 	scriptSearch.Icon.Position = UDim2.new(0.04, 0, 0.5, 0)
-	-- Keep the typed text vertically centred and a fixed size that fits
-	-- the search bar height (the per-panel UIScale shrinks it cleanly).
-	-- Without this the asset's TextScaled box clips the descenders so
-	-- the text looks cut off while typing.
-	pcall(function()
-		local sb = scriptSearch.SearchBox
-		sb.AnchorPoint = Vector2.new(0.5, 0.5)
-		sb.TextScaled = false
-		sb.TextWrapped = false
-		sb.TextSize = 18
-		sb.TextYAlignment = Enum.TextYAlignment.Center
-		sb.TextXAlignment = Enum.TextXAlignment.Left
-		sb.ClipsDescendants = false
-	end)
 	scriptSearch.SearchBox.Text = ""
 	scriptSearch.SearchBox.TextColor3 = Color3.fromRGB(150, 150, 150)
 	scriptSearch.Icon.ImageColor3 = Color3.fromRGB(150, 150, 150)
@@ -23606,7 +23592,7 @@ function scriptSaveState.showSavedList()
 
 	local pageMotion = TweenInfo.new(0.54, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 
-	tweenService:Create(scriptSearch, pageMotion, {Size = UDim2.new(0, 560, 0, 452)}):Play()
+	tweenService:Create(scriptSearch, pageMotion, {Size = UDim2.new(0, 580, 0, 452)}):Play()
 	tweenService:Create(scriptSearch.UIGradient, pageMotion, {Offset = Vector2.new(0, 0.6)}):Play()
 	tweenService:Create(scriptSaveState.topButton, pageMotion, {Position = UDim2.new(1, -54, 0, 18), Size = UDim2.new(0, 38, 0, 38)}):Play()
 	tweenService:Create(scriptSearch.List, pageMotion, {Position = UDim2.new(0, 28, 0, 146), Size = UDim2.new(1, -56, 1, -164)}):Play()
@@ -23921,7 +23907,7 @@ function searchScripts(query)
 		scriptSearch.List.Position = scriptSaveState.listPosition
 		scriptSearch.List.Size = scriptSaveState.listSize
 		scriptSearch.List.Visible = true
-		tweenService:Create(scriptSearch, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Size = UDim2.new(0, 560, 0, 452)}):Play()
+		tweenService:Create(scriptSearch, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Size = UDim2.new(0, 580, 0, 452)}):Play()
 		tweenService:Create(scriptSearch.Icon, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Position = UDim2.new(0.054, 0, 0.056, 0)}):Play()
 		tweenService:Create(scriptSearch.SearchBox, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Position = UDim2.new(0.523, 0, 0.056, 0)}):Play()
 		tweenService:Create(scriptSearch.List, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Position = scriptSaveState.listPosition, Size = scriptSaveState.listSize}):Play()
@@ -24130,6 +24116,24 @@ function siriusValues.bottomY(designOffset)
 	return designOffset
 end
 
+-- Shared drag offset for the whole bottom dock cluster (smartBar +
+-- toggle + toasts + any open panel). When the user drags the smart
+-- bar, this records how far it moved from the default dock so every
+-- element re-docks at the dragged location and stays attached.
+siriusValues.dockOffset = Vector2.new(0, 0)
+
+-- Centre-bottom dock position with the user's drag offset applied.
+-- dockUDim() applies bottomY() (safe-area inset) + offset; dockUDimRaw()
+-- takes an already-computed Y offset and only adds the drag offset.
+function siriusValues.dockUDim(designOffset)
+	local o = siriusValues.dockOffset or Vector2.new(0, 0)
+	return UDim2.new(0.5, o.X, 1, siriusValues.bottomY(designOffset) + o.Y)
+end
+function siriusValues.dockUDimRaw(yOffset)
+	local o = siriusValues.dockOffset or Vector2.new(0, 0)
+	return UDim2.new(0.5, o.X, 1, yOffset + o.Y)
+end
+
 -- Dock geometry for an open smartBar panel (Character/Scripts/
 -- Playerlist). Returns the panel's bottom-anchored Y and the toggle
 -- chevron's Y, both as screen offsets-from-bottom, so the panel sits
@@ -24156,12 +24160,13 @@ end
 -- the X offset by the responsive scale and pull the Y to the bar via
 -- bottomY(). At scale 1 with no inset this returns the original value.
 function siriusValues.panelButtonStart(panelName)
+	local o = siriusValues.dockOffset or Vector2.new(0, 0)
 	local base = siriusValues.buttonPositions and siriusValues.buttonPositions[panelName]
-	if not base then return UDim2.new(0.5, 0, 1, siriusValues.bottomY(-29)) end
+	if not base then return UDim2.new(0.5, o.X, 1, siriusValues.bottomY(-29) + o.Y) end
 	local r = siriusValues.responsive
 	local s = (r and r.scale) or 1
 	if s < 0.0001 then s = 1 end
-	return UDim2.new(base.X.Scale, base.X.Offset * s, base.Y.Scale, siriusValues.bottomY(base.Y.Offset * s))
+	return UDim2.new(base.X.Scale, base.X.Offset * s + o.X, base.Y.Scale, siriusValues.bottomY(base.Y.Offset * s) + o.Y)
 end
 
 -- Scroll-canvas scale correction. A ScrollingFrame inside a panel
@@ -24249,9 +24254,9 @@ local function openSmartBar()
 	toggle.Visible = not checkSetting("Hide Toggle Button").current
 
 	if checkTools() then
-		toggle.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-68))
+		toggle.Position = siriusValues.dockUDim(-68)
 	else
-		toggle.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-5))
+		toggle.Position = siriusValues.dockUDim(-5)
 	end
 
 	for _, button in ipairs(getSmartBarButtons()) do
@@ -24268,9 +24273,9 @@ local function openSmartBar()
 	pcall(function() tweenService:Create(coreGui.RobloxGui.Backpack, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Position = UDim2.new(-0.325,0,0,0)}):Play() end)
 
 	tweenService:Create(toggle, TweenInfo.new(0.82, Enum.EasingStyle.Quint), {Rotation = 0}):Play()
-	tweenService:Create(smartBar, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = siriusValues.smartBarUserPos or UDim2.new(0.5, 0, 1, siriusValues.bottomY(-12))}):Play()
-	tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-110))}):Play()
-	tweenService:Create(toggle, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-85))}):Play()
+	tweenService:Create(smartBar, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = siriusValues.dockUDim(-12)}):Play()
+	tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = siriusValues.dockUDim(-110)}):Play()
+	tweenService:Create(toggle, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = siriusValues.dockUDim(-85)}):Play()
 	tweenService:Create(smartBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Size = siriusValues.getResponsiveSmartBarSize(true)}):Play()
 	tweenService:Create(smartBar, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {BackgroundTransparency = 0.18}):Play()
 	tweenService:Create(smartBar.Shadow, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {ImageTransparency = 0.7}):Play()
@@ -24330,12 +24335,12 @@ local function closeSmartBar()
 
 	-- If tools, move the toggle
 	if checkTools() then
-		tweenService:Create(toggle, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-68))}):Play()
-		tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-90))}):Play()
+		tweenService:Create(toggle, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.dockUDim(-68)}):Play()
+		tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.dockUDim(-90)}):Play()
 		tweenService:Create(toggle, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Rotation = 180}):Play()
 	else
-		tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-28))}):Play()
-		tweenService:Create(toggle, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-5))}):Play()
+		tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.dockUDim(-28)}):Play()
+		tweenService:Create(toggle, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.dockUDim(-5)}):Play()
 		tweenService:Create(toggle, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Rotation = 180}):Play()
 	end
 end
@@ -24737,7 +24742,7 @@ local function createPlayer(player)
 				}
 
 				task.spawn(function()
-					tweenService:Create(toggle, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-85))}):Play()
+					tweenService:Create(toggle, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.dockUDim(-85)}):Play()
 					closePanel("Playerlist", true)
 					preservingSelectedAction = false
 					clearPlayerActions()
@@ -26809,47 +26814,92 @@ end
 -- ============================================================
 -- Draggable smart bar. Press-and-drag the bar's BACKGROUND (not a
 -- button ‚Äî buttons consume their own input so taps still work) to
--- reposition it. The user position persists across open/close: the
--- open/close animations and the responsive re-dock check
--- siriusValues.smartBarUserPos and respect it when set. A short tap
--- (no movement) does not register as a drag.
+-- reposition it. The whole dock cluster moves together: the toggle
+-- chevron and any open section panel follow the bar, and the drag is
+-- CLAMPED so the bar can never leave the screen (so the user can
+-- always grab it back). The movement is stored in
+-- siriusValues.dockOffset so every re-dock (open/close, rotation)
+-- keeps the cluster at the dragged location. A short tap (no
+-- movement) does not register as a drag.
 -- ============================================================
 do
-	local dragging = false
-	local moved = false
-	local dragStart, startPos
+	siriusValues._drag = { active = false }
 	pcall(function() smartBar.Active = true end)
+
+	function siriusValues._dragCurrentPanel()
+		for _, name in ipairs({"Character", "Scripts", "Playerlist"}) do
+			local p = UI:FindFirstChild(name)
+			if p and p:IsA("GuiObject") and p.Visible then return p end
+		end
+		return nil
+	end
+
+	function siriusValues._dragOffsetUDim(base, dx, dy)
+		return UDim2.new(base.X.Scale, base.X.Offset + dx, base.Y.Scale, base.Y.Offset + dy)
+	end
 
 	smartBar.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = true
-			moved = false
-			dragStart = Vector2.new(input.Position.X, input.Position.Y)
-			startPos = smartBar.Position
+			local d = siriusValues._drag
+			d.active = true
+			d.moved = false
+			d.start = Vector2.new(input.Position.X, input.Position.Y)
+			d.startOffset = siriusValues.dockOffset or Vector2.new(0, 0)
+			d.barAbs = smartBar.AbsolutePosition
+			d.barW = smartBar.AbsoluteSize.X
+			d.barH = smartBar.AbsoluteSize.Y
+			d.startBar = smartBar.Position
+			d.startToggle = toggle.Position
+			d.panel = siriusValues._dragCurrentPanel()
+			d.startPanel = d.panel and d.panel.Position or nil
 		end
 	end)
 
 	userInputService.InputChanged:Connect(function(input)
-		if not dragging then return end
+		local d = siriusValues._drag
+		if not d.active then return end
 		if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then return end
-		local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStart
-		if delta.Magnitude > 4 then moved = true end
-		if not moved then return end
-		local np = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-		smartBar.Position = np
-		siriusValues.smartBarUserPos = np
+		local raw = Vector2.new(input.Position.X, input.Position.Y) - d.start
+		if raw.Magnitude > 4 then d.moved = true end
+		if not d.moved then return end
+
+		-- Clamp so the bar stays fully on screen (margin px from edges).
+		local cam = workspace.CurrentCamera or camera
+		local vp = cam and cam.ViewportSize or Vector2.new(1280, 720)
+		local margin = 6
+		local minDX = margin - d.barAbs.X
+		local maxDX = (vp.X - d.barW - margin) - d.barAbs.X
+		local minDY = margin - d.barAbs.Y
+		local maxDY = (vp.Y - d.barH - margin) - d.barAbs.Y
+		local dx = math.clamp(raw.X, math.min(minDX, maxDX), math.max(minDX, maxDX))
+		local dy = math.clamp(raw.Y, math.min(minDY, maxDY), math.max(minDY, maxDY))
+
+		-- Persist as the cluster offset so re-docks stay attached.
+		siriusValues.dockOffset = Vector2.new(d.startOffset.X + dx, d.startOffset.Y + dy)
+
+		-- Move bar + toggle + open panel together by the clamped delta.
+		smartBar.Position = siriusValues._dragOffsetUDim(d.startBar, dx, dy)
+		toggle.Position   = siriusValues._dragOffsetUDim(d.startToggle, dx, dy)
+		if d.panel and d.startPanel then
+			d.panel.Position = siriusValues._dragOffsetUDim(d.startPanel, dx, dy)
+		end
 	end)
 
 	userInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
+			siriusValues._drag.active = false
 		end
 	end)
 
-	-- Double-tap the toggle hitbox is not used; instead expose a reset
-	-- so a future control can clear the custom position if desired.
+	-- Reset the cluster back to the default dock.
 	function siriusValues.resetSmartBarPosition()
-		siriusValues.smartBarUserPos = nil
+		siriusValues.dockOffset = Vector2.new(0, 0)
+		pcall(function()
+			if smartBarOpen then
+				smartBar.Position = siriusValues.dockUDim(-12)
+				toggle.Position = siriusValues.dockUDim(-85)
+			end
+		end)
 	end
 end
 
@@ -27341,20 +27391,20 @@ if siriusValues.responsive and siriusValues.responsive.onChange and not siriusVa
 		pcall(function()
 			if smartBarOpen then
 				smartBar.Size = siriusValues.getResponsiveSmartBarSize(true)
-				smartBar.Position = siriusValues.smartBarUserPos or UDim2.new(0.5, 0, 1, siriusValues.bottomY(-12))
-				toggle.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-85))
-				toastsContainer.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-110))
+				smartBar.Position = siriusValues.dockUDim(-12)
+				toggle.Position = siriusValues.dockUDim(-85)
+				toastsContainer.Position = siriusValues.dockUDim(-110)
 				if siriusValues.syncSmartBarCommandSearchLayout then
 					siriusValues.syncSmartBarCommandSearchLayout()
 				end
 			else
 				smartBar.Size = siriusValues.getResponsiveSmartBarSize(false)
 				if checkTools() then
-					toggle.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-68))
-					toastsContainer.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-90))
+					toggle.Position = siriusValues.dockUDim(-68)
+					toastsContainer.Position = siriusValues.dockUDim(-90)
 				else
-					toggle.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-5))
-					toastsContainer.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-28))
+					toggle.Position = siriusValues.dockUDim(-5)
+					toastsContainer.Position = siriusValues.dockUDim(-28)
 				end
 			end
 		end)
