@@ -6820,11 +6820,9 @@ do
 		Home          = true,   -- full-screen blur backdrop; cards use scale anchors
 		SiriusPlayerActionPicker = true, -- full-screen 1,1 container
 		SiriusSpectateControl    = true, -- already has its own UIScale
-		-- Notifications / Toasts are NOT skipped: they're edge-anchored
-		-- columns, so a UIScale shrinks them toward their corner and
-		-- keeps them sized consistently with the rest of the UI. The
-		-- isFullScreen() guard below still skips them if the asset made
-		-- them genuinely full-screen.
+		Notifications = true,   -- text box height is measured from TextBounds
+		Toasts        = true,   -- in screen px; keep them unscaled so the
+		                        -- measurement matches PC and the box fits.
 	}
 
 	local function isFullScreen(child)
@@ -8801,10 +8799,37 @@ local function queueNotification(Title, Description, Image)
 			newNotification.Position = UDim2.new(0.5, 0, -1, 0)
 			newNotification.Size = UDim2.new(0, 320, 0, 500)
 			newNotification.Description.Size = UDim2.new(0, 241, 0, 400)
+			-- Make sure the body wraps so long messages measure their
+			-- true multi-line height.
+			pcall(function()
+				newNotification.Description.TextWrapped = true
+				newNotification.Description.TextYAlignment = Enum.TextYAlignment.Top
+			end)
 			wipeTransparency(newNotification, 1, true)
 
-			newNotification.Description.Size = UDim2.new(0, 241, 0, newNotification.Description.TextBounds.Y)
-			newNotification.Size = UDim2.new(0, 100, 0, newNotification.Description.TextBounds.Y + 50)
+			-- Measure the wrapped height with TextService at the real
+			-- description width so the box always fits the text, instead
+			-- of reading TextBounds before the layout has settled.
+			local descWidth = 241
+			local descHeight
+			local okMeasure, measured = pcall(function()
+				local font = newNotification.Description.Font
+				return game:GetService("TextService"):GetTextSize(
+					newNotification.Description.Text,
+					newNotification.Description.TextSize,
+					font,
+					Vector2.new(descWidth, math.huge)
+				)
+			end)
+			if okMeasure and measured then
+				descHeight = measured.Y
+			else
+				descHeight = newNotification.Description.TextBounds.Y
+			end
+			descHeight = math.max(descHeight, 18)
+
+			newNotification.Description.Size = UDim2.new(0, descWidth, 0, descHeight)
+			newNotification.Size = UDim2.new(0, 100, 0, descHeight + 50)
 
 			table.insert(notifications, newNotification)
 			figureNotifications()
@@ -8826,7 +8851,7 @@ local function queueNotification(Title, Description, Image)
 
 			newNotification:TweenPosition(UDim2.new(0.5, 0, 0, siriusValues.topY(newNotification.Size.Y.Offset + 2)), "Out", "Quint", 0.9, true)
 			task.wait(0.1)
-			tweenService:Create(newNotification, TweenInfo.new(0.8, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 320, 0, newNotification.Description.TextBounds.Y + 50)}):Play()
+			tweenService:Create(newNotification, TweenInfo.new(0.8, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 320, 0, descHeight + 50)}):Play()
 			task.wait(0.05)
 			tweenService:Create(newNotification, TweenInfo.new(0.8, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.35}):Play()
 			tweenService:Create(newNotification.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 0.7}):Play()
@@ -21284,6 +21309,20 @@ local function openScriptSearch()
 	scriptSearch.BackgroundTransparency = 1
 	scriptSearch.SearchBox.Position = UDim2.new(0.509, 0, 0.5, 0)
 	scriptSearch.Icon.Position = UDim2.new(0.04, 0, 0.5, 0)
+	-- Keep the typed text vertically centred and a fixed size that fits
+	-- the search bar height (the per-panel UIScale shrinks it cleanly).
+	-- Without this the asset's TextScaled box clips the descenders so
+	-- the text looks cut off while typing.
+	pcall(function()
+		local sb = scriptSearch.SearchBox
+		sb.AnchorPoint = Vector2.new(0.5, 0.5)
+		sb.TextScaled = false
+		sb.TextWrapped = false
+		sb.TextSize = 18
+		sb.TextYAlignment = Enum.TextYAlignment.Center
+		sb.TextXAlignment = Enum.TextXAlignment.Left
+		sb.ClipsDescendants = false
+	end)
 	scriptSearch.SearchBox.Text = ""
 	scriptSearch.SearchBox.TextColor3 = Color3.fromRGB(150, 150, 150)
 	scriptSearch.Icon.ImageColor3 = Color3.fromRGB(150, 150, 150)
