@@ -19127,7 +19127,7 @@ local function closePanel(panelName, openingOther)
 
 		tweenService:Create(panel, TweenInfo.new(0.75, Enum.EasingStyle.Exponential, Enum.EasingDirection.InOut), {BackgroundTransparency = 1}):Play()
 		tweenService:Create(panel, TweenInfo.new(1.1, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = button.Size}):Play()
-		tweenService:Create(panel, TweenInfo.new(0.65, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.buttonPositions[panelName]}):Play()
+		tweenService:Create(panel, TweenInfo.new(0.65, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.panelButtonStart(panelName)}):Play()
 		tweenService:Create(toggle, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-85))}):Play()
 	end
 
@@ -19174,7 +19174,7 @@ local function openPanel(panelName)
 	local panelSize = UDim2.new(0, 581, 0, 246)
 
 	panel.Size = button.Size
-	panel.Position = siriusValues.buttonPositions[panelName]
+	panel.Position = siriusValues.panelButtonStart(panelName)
 
 	wipeTransparency(panel, 1, true)
 
@@ -24064,6 +24064,21 @@ function siriusValues.panelDockY(panelHeightOffset)
 	local panelBottom = -(12 + bottomPad + barH + gap)
 	local toggleY     = panelBottom - panelHeightOffset * s - 5
 	return panelBottom, toggleY
+end
+
+-- Grow-from-button origin for the open/close animation. The asset's
+-- buttonPositions (e.g. Character = (0.5,-155,1,-29)) are PC-space
+-- offsets that line up with the smartBar buttons at scale 1. On a
+-- scaled bar the buttons sit closer to centre and higher, so we scale
+-- the X offset by the responsive scale and pull the Y to the bar via
+-- bottomY(). At scale 1 with no inset this returns the original value.
+function siriusValues.panelButtonStart(panelName)
+	local base = siriusValues.buttonPositions and siriusValues.buttonPositions[panelName]
+	if not base then return UDim2.new(0.5, 0, 1, siriusValues.bottomY(-29)) end
+	local r = siriusValues.responsive
+	local s = (r and r.scale) or 1
+	if s < 0.0001 then s = 1 end
+	return UDim2.new(base.X.Scale, base.X.Offset * s, base.Y.Scale, siriusValues.bottomY(base.Y.Offset * s))
 end
 
 -- Scroll-canvas scale correction. A ScrollingFrame inside a panel
