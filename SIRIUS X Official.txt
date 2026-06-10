@@ -8780,6 +8780,50 @@ if siriusValues.responsive and siriusValues.responsive.onChange and not siriusVa
 	end)
 end
 
+-- Pin the notification column hard to the TOP-RIGHT corner and shrink
+-- it a little on touch devices so the cards sit cleanly in the corner
+-- instead of floating mid-right at full size. Desktop keeps the asset
+-- layout. The box heights are measured with TextService (local px), so
+-- this dedicated UIScale only changes the on-screen size, never the fit.
+do
+	local nc = notificationContainer
+	local design = {
+		AnchorPoint = nc.AnchorPoint,
+		Position    = nc.Position,
+		Size        = nc.Size,
+	}
+
+	local function applyNotifCorner()
+		local r = siriusValues.responsive
+		local touch = r and r.isTouch and r.isTouch()
+		local sc = nc:FindFirstChild("__SiriusNotifScale")
+		if touch then
+			local top = (r.topInset and r.topInset()) or 0
+			nc.AnchorPoint = Vector2.new(1, 0)
+			nc.Position = UDim2.new(1, -10, 0, top + 10)
+			nc.Size = UDim2.new(0, 330, 1, -(top + 20))
+			if not sc then
+				sc = Instance.new("UIScale")
+				sc.Name = "__SiriusNotifScale"
+				sc.Parent = nc
+			end
+			sc.Scale = (r.isPhone and r.isPhone()) and 0.7 or 0.82
+		else
+			nc.AnchorPoint = design.AnchorPoint
+			nc.Position    = design.Position
+			nc.Size        = design.Size
+			if sc then sc.Scale = 1 end
+		end
+		pcall(figureNotifications)
+	end
+
+	siriusValues.applyNotifCorner = applyNotifCorner
+	if siriusValues.responsive and siriusValues.responsive.onChange then
+		siriusValues.responsive.onChange(applyNotifCorner)
+	end
+	applyNotifCorner()
+end
+
 local contentProvider = game:GetService("ContentProvider")
 
 local function queueNotification(Title, Description, Image)
