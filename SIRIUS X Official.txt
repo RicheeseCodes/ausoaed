@@ -7589,9 +7589,15 @@ do
 	input.Parent = searchContainer
 
 	function siriusValues.syncSmartBarCommandSearchLayout()
-		local width = smartBar.AbsoluteSize.X
+		-- smartBar carries a per-panel UIScale, so AbsoluteSize.X is the
+		-- SCALED (on-screen) width. The search-bar layout below works in
+		-- the bar's LOCAL coordinate space (searchContainer.Size offsets
+		-- are local), so use the local Size width ‚Äî otherwise the scaled
+		-- measurement falsely triggers compact mode and squashes the
+		-- pill into the wrong shape on phones/tablets.
+		local width = smartBar.Size.X.Offset
 		if width <= 0 then
-			width = smartBar.Size.X.Offset
+			width = smartBar.AbsoluteSize.X
 		end
 
 		local compact = width < 520
