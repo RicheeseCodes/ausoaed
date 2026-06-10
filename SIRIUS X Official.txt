@@ -7483,7 +7483,12 @@ function characterRuntime.positionCharacterPanelContent()
 		local buttonY = 194
 
 		if grid and gridLayout then
-			buttonY = math.max(buttonY, grid.Position.Y.Offset + gridLayout.AbsoluteContentSize.Y + 16)
+			-- AbsoluteContentSize is screen px (scaled); grid.Position is
+			-- local. Convert the content height to local space so the
+			-- Serverhop/Rejoin buttons land BELOW the grid instead of
+			-- inside it on scaled (mobile) panels.
+			local cs = siriusValues.scrollCanvasScale(grid)
+			buttonY = math.max(buttonY, grid.Position.Y.Offset + gridLayout.AbsoluteContentSize.Y / cs + 16)
 		end
 
 		setY(interactions:FindFirstChild("Serverhop"), buttonY)
@@ -7504,7 +7509,12 @@ function characterRuntime.refreshCharacterPanelScroll()
 		local layout = holder:FindFirstChildOfClass("UIGridLayout") or holder:FindFirstChildOfClass("UIListLayout")
 		if not layout then return end
 
-		local contentHeight = layout.AbsoluteContentSize.Y
+		-- AbsoluteContentSize is scaled screen px; holder.Size offset is
+		-- local. Convert to local so the Sliders / Grid holders are tall
+		-- enough to show every row (otherwise the list is clipped and
+		-- can't scroll on mobile).
+		local cs = siriusValues.scrollCanvasScale(holder)
+		local contentHeight = layout.AbsoluteContentSize.Y / cs
 		if contentHeight > 0 then
 			holder.Size = UDim2.new(holder.Size.X.Scale, holder.Size.X.Offset, 0, contentHeight + 12)
 		end
