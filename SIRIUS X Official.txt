@@ -6765,8 +6765,20 @@ local toastsContainer = UI.Toasts
 -- ============================================================
 do
 	local SiriusResponsive = {
-		DESIGN     = Vector2.new(1280, 720),
-		MIN_SCALE  = 0.55,
+		-- DESIGN viewport: the (X, Y) the UI is "authored against".
+		-- Y is 600 (not the camera viewport 720) because the tallest
+		-- panel (Settings 384) plus the bottom dock budget (smartBar +
+		-- toggle + toast clearance ‚âà 110) plus margins ‚âà 524-560 px,
+		-- so scaling to a 600px design Y leaves a comfortable gap
+		-- between the panel bottom and the smartBar top on any
+		-- short landscape phone. At >= 1280 x 720 the scale is
+		-- clamped to MAX_SCALE = 1.0 (PC look unchanged).
+		DESIGN     = Vector2.new(1280, 600),
+		-- 0.40 lets tiny landscape viewports (e.g. 595 x 255) shrink
+		-- enough that panels don't intersect the dock; text remains
+		-- legible because 16-18 px design font * 0.40 ‚âà 6-7 px is the
+		-- worst case only on extreme aspect ratios.
+		MIN_SCALE  = 0.40,
 		MAX_SCALE  = 1.00,
 		scale      = 1,
 		viewport   = Vector2.new(1280, 720),
@@ -6778,58 +6790,55 @@ do
 	}
 	siriusValues.responsive = SiriusResponsive
 
-	-- ====== Wrapper Frame: every existing UI child gets reparented
-	-- into this Frame so a single UIScale shrinks them uniformly.
-	-- The local variable bindings captured at lines 6734-6750 stay
-	-- valid because they're captured by reference, not by parent.
-	local root = Instance.new("Frame")
-	root.Name = "__SiriusResponsiveRoot"
-	root.BackgroundTransparency = 1
-	root.BorderSizePixel = 0
-	root.AnchorPoint = Vector2.new(0, 0)
-	root.Position = UDim2.new(0, 0, 0, 0)
-	root.Size = UDim2.new(1, 0, 1, 0)
-	root.ZIndex = 1
-	root.Parent = UI
-
-	-- Force the root ScreenGui to a deterministic inset state so the
-	-- pre-existing GuiInset compensation in makeDraggable (~line 8312)
-	-- and refreshPickerGuiInsetOffset (~line 13786) ‚Äî both of which
-	-- check `if ScreenGui.IgnoreGuiInset then add inset` ‚Äî produces
-	-- predictable, non-double-applied offsets. False = inherit the
-	-- Roblox topbar inset (UI lives below it); checks above no-op.
+	-- Deterministic inset state so the pre-existing GuiInset checks
+	-- in makeDraggable (~8312) and refreshPickerGuiInsetOffset
+	-- (~13786) produce predictable, non-double-applied offsets.
 	pcall(function() UI.IgnoreGuiInset = false end)
 
-	local rootScale = Instance.new("UIScale")
-	rootScale.Name = "__SiriusRootScale"
-	rootScale.Scale = 1
-	rootScale.Parent = root
+	-- Per-panel UIScale model. INSTEAD of a wrapper Frame (which can
+	-- eat touch input and break scrolling, and forces a reparent that
+	-- can confuse asset code expecting .Parent == UI), we attach a
+	-- UIScale named __SiriusPerPanelScale directly to every top-level
+	-- GuiObject child of UI. All scales share the same Scale value,
+	-- so the look is uniform ‚Äî but every panel keeps its original
+	-- parenting and never has a covering Frame.
+	local PANEL_SCALE_TAG = "__SiriusPerPanelScale"
+	SiriusResponsive.panelScales = setmetatable({}, {__mode = "k"})
 
-	SiriusResponsive.root = root
-	SiriusResponsive.rootScale = rootScale
-
-	-- Reparent every existing top-level GuiObject (but not our own
-	-- wrapper) into root. We snapshot the child list first so the
-	-- iteration isn't disturbed by reparenting.
-	for _, child in ipairs(UI:GetChildren()) do
-		if child ~= root and child:IsA("GuiObject") then
-			child.Parent = root
+	local function ensurePanelScale(child)
+		if not child or not child:IsA("GuiObject") then return nil end
+		local existing = child:FindFirstChild(PANEL_SCALE_TAG)
+		if existing and existing:IsA("UIScale") then
+			SiriusResponsive.panelScales[child] = existing
+			return existing
 		end
+		local sc = Instance.new("UIScale")
+		sc.Name = PANEL_SCALE_TAG
+		sc.Scale = SiriusResponsive.scale
+		sc.Parent = child
+		SiriusResponsive.panelScales[child] = sc
+		return sc
 	end
 
-	-- Future top-level children (spectateBar.Parent = UI, dynamic
-	-- prompt clones, etc) get adopted automatically.
+	-- Attach to every existing direct child of UI.
+	for _, child in ipairs(UI:GetChildren()) do
+		ensurePanelScale(child)
+	end
+
+	-- Adopt anything created dynamically after init (spectateBar,
+	-- security prompt clones, the player action picker, etc).
 	UI.ChildAdded:Connect(function(child)
-		if child == root then return end
 		if not child:IsA("GuiObject") then return end
-		-- defer so the script that just parented it can finish its
-		-- own setup (Position/Size/Visible) before we move it.
+		-- defer so the spawn site can finish setup (Position/Size/
+		-- Visible/inner children) before we attach our scale.
 		task.defer(function()
 			if child.Parent == UI then
-				child.Parent = root
+				ensurePanelScale(child)
 			end
 		end)
 	end)
+
+	SiriusResponsive.ensurePanelScale = ensurePanelScale
 
 	-- ====== Viewport / scale recompute
 	-- Prefer UI.AbsoluteSize (post-inset, post-mobile-chrome) so we
@@ -6862,8 +6871,8 @@ do
 	end
 
 	function SiriusResponsive.designViewport()
-		-- design-space viewport (what panels should fit into AFTER
-		-- the wrapper UIScale shrinks them). Always >= camera vp.
+		-- design-space viewport (what panels are sized FOR before
+		-- their per-panel UIScale shrinks them on screen).
 		local s = math.max(SiriusResponsive.scale, 0.0001)
 		local vp = SiriusResponsive.viewport
 		return Vector2.new(vp.X / s, vp.Y / s)
@@ -6904,7 +6913,10 @@ do
 		local s = math.min(vp.X / SiriusResponsive.DESIGN.X, vp.Y / SiriusResponsive.DESIGN.Y)
 		s = math.clamp(s, SiriusResponsive.MIN_SCALE, SiriusResponsive.MAX_SCALE)
 		SiriusResponsive.scale = s
-		SiriusResponsive.rootScale.Scale = s
+		-- Drive every per-panel UIScale to the new value.
+		for child, sc in pairs(SiriusResponsive.panelScales) do
+			if sc and sc.Parent then sc.Scale = s end
+		end
 		if SiriusResponsive.promptScale then
 			SiriusResponsive.promptScale.Scale = s
 		end
@@ -8371,13 +8383,11 @@ local function makeDraggable(object)
 	local renderStepped = runService.RenderStepped:Connect(function()
 		if dragging then
 			local position = (pointerPosition or getPointerPosition(activeInput)) + relative + offset
-			-- Under the wrapper UIScale S, an offset of P renders at S*P
-			-- screen px. To put the object's anchor at the screen
-			-- position `position`, set offset = position / S.
-			local r = siriusValues.responsive
-			local s = (r and r.scale) or 1
-			if s < 0.0001 then s = 1 end
-			object.Position = UDim2.fromOffset(position.X / s, position.Y / s)
+			-- Per-panel UIScale: panel.Position is in UI's unscaled
+			-- parent space, so screen-space `position` can be assigned
+			-- directly ‚Äî the object's own UIScale handles its visual
+			-- size separately.
+			object.Position = UDim2.fromOffset(position.X, position.Y)
 		end
 	end)
 
@@ -13778,18 +13788,15 @@ local function ensurePlayerActionPicker()
 			-- panel.AbsolutePosition / AbsoluteSize are screen-space
 			-- (post-scale). shadow is parented under the wrapper
 			-- UIScale so its fromOffset is in design-space ‚Äî divide
-			-- the screen values by S to convert. The constants 16/76/78
-			-- stay as design-space px (they get *S to screen).
-			local r = siriusValues.responsive
-			local s = (r and r.scale) or 1
-			if s < 0.0001 then s = 1 end
-			local absPos  = panel.AbsolutePosition
-			local absSize = panel.AbsoluteSize
+			-- Per-panel UIScale: shadow.Position lives in UI's unscaled
+			-- space, so screen-space AbsolutePosition can go in directly.
+			-- shadow.Size is interpreted under shadow's own UIScale, so
+			-- it stays in the same coord system as panel.AbsoluteSize.
 			shadow.Position = UDim2.fromOffset(
-				absPos.X / s + (absSize.X / s) * 0.5,
-				absPos.Y / s + (absSize.Y / s) * 0.5 + 16
+				panel.AbsolutePosition.X + panel.AbsoluteSize.X * 0.5,
+				panel.AbsolutePosition.Y + panel.AbsoluteSize.Y * 0.5 + 16
 			)
-			shadow.Size = UDim2.fromOffset(absSize.X / s + 76, absSize.Y / s + 78)
+			shadow.Size = UDim2.fromOffset(panel.AbsoluteSize.X + 76, panel.AbsoluteSize.Y + 78)
 		end
 
 		local function lerpVector2(from, to, alpha)
@@ -13920,15 +13927,13 @@ local function ensurePlayerActionPicker()
 			if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then return end
 			if not dragStart or not dragStartPosition then return end
 
-			-- All math in DESIGN SPACE. getPickerRootSize() returns
-			-- design-space; panel.AbsoluteSize and input.Position are
-			-- screen-space, so divide them by the wrapper scale S.
-			local r = siriusValues.responsive
-			local s = (r and r.scale) or 1
-			if s < 0.0001 then s = 1 end
+			-- Per-panel UIScale: panel.Position lives in UI's unscaled
+			-- space so screen-space pointer deltas can be added to
+			-- design-space center offsets directly. Clamp uses the
+			-- design viewport so the panel can't be dragged off-screen.
 			local rootSize = getPickerRootSize()
-			local panelSize = panel.AbsoluteSize / s
-			local delta = (Vector2.new(input.Position.X, input.Position.Y) - dragStart) / s
+			local panelSize = panel.AbsoluteSize
+			local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStart
 			local startCenter = Vector2.new(dragStartPosition.X.Offset, dragStartPosition.Y.Offset)
 
 			if dragStartPosition.X.Scale ~= 0 or dragStartPosition.Y.Scale ~= 0 then
@@ -14056,15 +14061,7 @@ local function ensurePlayerActionPicker()
 			refreshPickerGuiInsetOffset()
 			resizeStartPointer = pointerVectorFromInput(input)
 			resizePointerPosition = resizeStartPointer
-			-- Convert screen-space AbsoluteSize to design-space so the
-			-- resize math (which assigns back to design-space Size) is
-			-- consistent. Pointer deltas are also divided by S below.
-			do
-				local r = siriusValues.responsive
-				local s = (r and r.scale) or 1
-				if s < 0.0001 then s = 1 end
-				resizeStartSize = panel.AbsoluteSize / s
-			end
+			resizeStartSize = panel.AbsoluteSize
 			local rootSize = getPickerRootSize()
 			resizeStartCenter = Vector2.new(panel.Position.X.Offset, panel.Position.Y.Offset)
 			if panel.Position.X.Scale ~= 0 or panel.Position.Y.Scale ~= 0 then
@@ -14150,13 +14147,7 @@ local function ensurePlayerActionPicker()
 
 			local rootSize = getPickerRootSize()
 			resizePointerPosition = pointerVectorFromInput(input)
-			-- Convert screen-space pointer delta to design space so
-			-- adding it to design-space resizeStartSize produces a
-			-- design-space target size.
-			local r_drag = siriusValues.responsive
-			local s_drag = (r_drag and r_drag.scale) or 1
-			if s_drag < 0.0001 then s_drag = 1 end
-			local delta = (resizePointerPosition - resizeStartPointer) / s_drag
+			local delta = resizePointerPosition - resizeStartPointer
 			local maxWidth = math.min(playerActionPickerMaxSize.X, math.max(playerActionPickerMinSize.X, rootSize.X - 80))
 			local maxHeight = math.min(playerActionPickerMaxSize.Y, math.max(playerActionPickerMinSize.Y, rootSize.Y - 80))
 			local nextWidth = math.clamp(resizeStartSize.X + (delta.X * 2), playerActionPickerMinSize.X, maxWidth)
@@ -15724,35 +15715,22 @@ local function ensurePlayerActionPicker()
 		}):Play()
 	end
 
-	-- All drag/resize math below is kept in DESIGN SPACE. Inputs from
-	-- UserInputService are raw screen px; we divide by the responsive
-	-- scale S so that adding/clamping against the design-space rootSize
-	-- and assigning back to Position/Size offsets is consistent.
-	local function _resScale()
-		local r = siriusValues.responsive
-		local s = (r and r.scale) or 1
-		if s < 0.0001 then s = 1 end
-		return s
-	end
-
 	top.InputBegan:Connect(function(input, processed)
 		if processed or not inputIsPointer(input) then return end
 		local inputPosition = Vector2.new(input.Position.X, input.Position.Y)
 		if inputPosition.X > close.AbsolutePosition.X - 8 then return end
 
 		pickerDragging = true
-		local s = _resScale()
-		dragOffset = (inputPosition - panel.AbsolutePosition) / s
+		dragOffset = inputPosition - panel.AbsolutePosition
 	end)
 
 	resizeHandle.InputBegan:Connect(function(input, processed)
 		if processed or not inputIsPointer(input) then return end
 
 		pickerResizing = true
-		local s = _resScale()
-		resizeStartPosition = Vector2.new(input.Position.X, input.Position.Y) / s
-		resizeStartSize = panel.AbsoluteSize / s
-		resizeStartTopLeft = panel.AbsolutePosition / s
+		resizeStartPosition = Vector2.new(input.Position.X, input.Position.Y)
+		resizeStartSize = panel.AbsoluteSize
+		resizeStartTopLeft = panel.AbsolutePosition
 		tweenService:Create(resizeIcon, TweenInfo.new(0.12, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
 			Size = UDim2.fromOffset(30, 30),
 			ImageColor3 = Color3.fromRGB(72, 72, 72)
@@ -15771,10 +15749,9 @@ local function ensurePlayerActionPicker()
 		if not playerActionPickerState.open then return end
 
 		if pickerDragging and not pickerResizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-			local s = _resScale()
 			local rootSize = pickerRootSize()
-			local panelSize = panel.AbsoluteSize / s
-			local mousePosition = Vector2.new(input.Position.X, input.Position.Y) / s
+			local panelSize = panel.AbsoluteSize
+			local mousePosition = Vector2.new(input.Position.X, input.Position.Y)
 			local topLeft = mousePosition - dragOffset
 			local clampedTopLeft = Vector2.new(
 				math.clamp(topLeft.X, -80, rootSize.X - panelSize.X + 80),
@@ -15783,9 +15760,8 @@ local function ensurePlayerActionPicker()
 			local center = clampedTopLeft + panelSize / 2
 			panel.Position = UDim2.fromOffset(center.X, center.Y)
 		elseif pickerResizing and not pickerDragging and resizeStartPosition and resizeStartSize and resizeStartTopLeft then
-			local s = _resScale()
 			local rootSize = pickerRootSize()
-			local delta = (Vector2.new(input.Position.X, input.Position.Y) / s) - resizeStartPosition
+			local delta = Vector2.new(input.Position.X, input.Position.Y) - resizeStartPosition
 			local maxWidth = math.min(playerActionPickerMaxSize.X, math.max(playerActionPickerMinSize.X, rootSize.X - 80))
 			local maxHeight = math.min(playerActionPickerMaxSize.Y, math.max(playerActionPickerMinSize.Y, rootSize.Y - 80))
 			local newWidth = math.clamp(resizeStartSize.X + delta.X, playerActionPickerMinSize.X, maxWidth)
@@ -19006,7 +18982,7 @@ local function closePanel(panelName, openingOther)
 	debounce = true
 
 	local button = smartBar.Buttons:FindFirstChild(panelName)
-	local panel = (siriusValues.responsive.root or UI):FindFirstChild(panelName)
+	local panel = UI:FindFirstChild(panelName)
 
 	if not isPanel(panelName) then return end
 	if not (panel and button) then return end
@@ -19130,12 +19106,12 @@ local function openPanel(panelName)
 	debounce = true
 
 	local button = smartBar.Buttons:FindFirstChild(panelName)
-	local panel = (siriusValues.responsive.root or UI):FindFirstChild(panelName)
+	local panel = UI:FindFirstChild(panelName)
 
 	if not isPanel(panelName) then return end
 	if not (panel and button) then return end
 
-	for _, otherPanel in ipairs((siriusValues.responsive.root or UI):GetChildren()) do
+	for _, otherPanel in ipairs(UI:GetChildren()) do
 		if smartBar.Buttons:FindFirstChild(otherPanel.Name) then
 			if isPanel(otherPanel.Name) and otherPanel.Visible then
 				task.spawn(closePanel, otherPanel.Name, true)
@@ -24131,7 +24107,7 @@ local function closeSmartBar()
 	smartBarAnimationId = smartBarAnimationId + 1
 	local animationId = smartBarAnimationId
 
-	for _, otherPanel in ipairs((siriusValues.responsive.root or UI):GetChildren()) do
+	for _, otherPanel in ipairs(UI:GetChildren()) do
 		if smartBar.Buttons:FindFirstChild(otherPanel.Name) then
 			if isPanel(otherPanel.Name) and otherPanel.Visible then
 				task.spawn(closePanel, otherPanel.Name, true)
@@ -26242,7 +26218,7 @@ siriusValues.runKeybindAction = function(actionName)
 
 	if actionName == "character" or actionName == "scripts" or actionName == "players" then
 		local panelName = actionName == "character" and "Character" or actionName == "scripts" and "Scripts" or "Playerlist"
-		local panel = (siriusValues.responsive.root or UI):FindFirstChild(panelName)
+		local panel = UI:FindFirstChild(panelName)
 		if panel and panel.Visible then
 			task.spawn(closePanel, panelName)
 		else
@@ -26278,7 +26254,7 @@ siriusValues.runKeybindAction = function(actionName)
 		end
 
 		for _, panelName in ipairs({"Character", "Scripts", "Playerlist"}) do
-			local panel = (siriusValues.responsive.root or UI):FindFirstChild(panelName)
+			local panel = UI:FindFirstChild(panelName)
 			if panel and panel.Visible then
 				task.spawn(closePanel, panelName)
 				closed = true
@@ -26865,7 +26841,7 @@ local function playSmartBarDecline(button)
 end
 
 for _, button in ipairs(smartBar.Buttons:GetChildren()) do
-	if (siriusValues.responsive.root or UI):FindFirstChild(button.Name) and button:FindFirstChild("Interact") then
+	if UI:FindFirstChild(button.Name) and button:FindFirstChild("Interact") then
 		button.Interact.MouseButton1Click:Connect(function()
 			if button.Name == "Playerlist" and playerActionSystem.isPickerOpen and playerActionSystem.isPickerOpen() then
 				playSmartBarDecline(button)
@@ -26874,7 +26850,7 @@ for _, button in ipairs(smartBar.Buttons:GetChildren()) do
 			end
 
 			if isPanel(button.Name) then
-				if not debounce and (siriusValues.responsive.root or UI):FindFirstChild(button.Name).Visible then
+				if not debounce and UI:FindFirstChild(button.Name).Visible then
 					task.spawn(closePanel, button.Name)
 				else
 					task.spawn(openPanel, button.Name)
