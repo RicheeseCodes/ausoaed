@@ -23562,7 +23562,7 @@ function scriptSaveState.showSavedList()
 
 	local pageMotion = TweenInfo.new(0.54, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 
-	tweenService:Create(scriptSearch, pageMotion, {Size = UDim2.new(0, 580, 0, 529)}):Play()
+	tweenService:Create(scriptSearch, pageMotion, {Size = UDim2.new(0, 560, 0, 452)}):Play()
 	tweenService:Create(scriptSearch.UIGradient, pageMotion, {Offset = Vector2.new(0, 0.6)}):Play()
 	tweenService:Create(scriptSaveState.topButton, pageMotion, {Position = UDim2.new(1, -54, 0, 18), Size = UDim2.new(0, 38, 0, 38)}):Play()
 	tweenService:Create(scriptSearch.List, pageMotion, {Position = UDim2.new(0, 28, 0, 146), Size = UDim2.new(1, -56, 1, -164)}):Play()
@@ -23877,7 +23877,7 @@ function searchScripts(query)
 		scriptSearch.List.Position = scriptSaveState.listPosition
 		scriptSearch.List.Size = scriptSaveState.listSize
 		scriptSearch.List.Visible = true
-		tweenService:Create(scriptSearch, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Size = UDim2.new(0, 580, 0, 529)}):Play()
+		tweenService:Create(scriptSearch, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Size = UDim2.new(0, 560, 0, 452)}):Play()
 		tweenService:Create(scriptSearch.Icon, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Position = UDim2.new(0.054, 0, 0.056, 0)}):Play()
 		tweenService:Create(scriptSearch.SearchBox, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Position = UDim2.new(0.523, 0, 0.056, 0)}):Play()
 		tweenService:Create(scriptSearch.List, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Position = scriptSaveState.listPosition, Size = scriptSaveState.listSize}):Play()
@@ -26969,7 +26969,11 @@ for _, button in ipairs(scriptsPanel.Interactions.Selection:GetChildren()) do
 		tweenService:Create(button, TweenInfo.new(.25,Enum.EasingStyle.Quint),  {Size = origsize}):Play()
 
 		if button.Name == "Library" then
-			if not scriptSearch.Visible and not debounce then
+			if debounce then return end
+			if scriptSearch.Visible then
+				-- Tapping ScriptSearch again toggles it closed.
+				task.spawn(closeScriptSearch)
+			else
 				-- Close the Scripting panel first (with its animation) so
 				-- it doesn't block the ScriptSearch view, then open search.
 				task.spawn(function()
@@ -26983,6 +26987,18 @@ for _, button in ipairs(scriptsPanel.Interactions.Selection:GetChildren()) do
 		-- run action
 	end)
 end
+
+-- Tap anywhere outside Sirius (the game world / empty space) to close
+-- ScriptSearch. gameProcessed is true when the tap landed on a GUI
+-- element (the search box, smartBar, etc), so those don't close it ‚Äî
+-- only taps that fall through to the game do.
+userInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if not scriptSearch.Visible then return end
+	if debounce or scriptSaveState.runPromptActive then return end
+	if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then return end
+	task.spawn(closeScriptSearch)
+end)
 
 smartBar.Buttons.Music.Interact.MouseButton1Click:Connect(function()
 	if debounce then return end
