@@ -6750,466 +6750,208 @@ local starlight = UI.Starlight
 local toastsContainer = UI.Toasts
 
 -- ============================================================
--- Responsive Layout System (Mobile / Tablet / Desktop)
---
--- This block does three jobs:
---   1. Computes a per-device UIScale and applies it to every
---      top-level panel so SIRIUS X looks the right physical
---      size on phones, tablets, laptops, and high-DPI displays.
---   2. Handles the device safe area (notch / Roblox top bar /
---      gesture strip / mobile chat) via ScreenInsets and a set
---      of bottom/top safe-inset helpers used elsewhere.
---   3. Exposes responsive helpers consumed across the script:
---        siriusValues.deviceCategory()       -> "phone"|"tablet"|"desktop"
---        siriusValues.isPhone() / isTablet() / isDesktop()
---        siriusValues.viewportSize()         -> Vector2
---        siriusValues.fitSize(w, h, padX, padY) -> UDim2
---        siriusValues.bottomSafeInset()      -> number
---        siriusValues.topSafeInset()         -> number
---        siriusValues.responsiveScale()      -> number  (the live UIScale)
---      and a clamp pass that drags any spilled top-level panel
---      back inside the viewport whenever it appears or resizes.
+-- SiriusResponsive ‚Äî single source of truth for scaling and
+-- safe-area insets. Strategy (per /plan):
+--   * ONE wrapper Frame inside UI holds every panel.
+--   * ONE UIScale on the wrapper shrinks the whole UI uniformly
+--     to fit smaller screens, capped at 1.0 so the PC look is
+--     pixel-identical at >= the design viewport.
+--   * Safe-area insets (top notch / Roblox topbar, bottom gesture
+--     bar) are applied as UNSCALED pixel offsets to the dock and
+--     top floats, so they clear device chrome without distorting
+--     the UI proportions.
+--   * Device classification feeds a couple of touch-only fallbacks
+--     (tap-target hitboxes and two functional hover reveals).
 -- ============================================================
 do
-	local AUTOSCALE_TAG  = "__SiriusAutoScale"
-	-- One shared "design" viewport for every device. We never scale UP
-	-- above 1.0 -- so on PC (and most modern phones in landscape that
-	-- match or exceed this size) the UI renders at native size and
-	-- looks identical to PC. Only smaller screens get scaled down so
-	-- panels still fit.
-	local BASE_DESIGN    = Vector2.new(1280, 720)
-	local MIN_SCALE      = 0.60
-	local MAX_SCALE      = 1.00
-	local SAFE_PAD       = 6   -- px gap kept between any panel edge and viewport edge
-
-	local autoScale = {
-		current  = 1,
-		category = "desktop",
-		viewport = Vector2.new(1280, 720),
-		viewportConn = nil,
-		cameraConn   = nil,
-		applyConns   = {},
+	local SiriusResponsive = {
+		DESIGN     = Vector2.new(1280, 720),
+		MIN_SCALE  = 0.55,
+		MAX_SCALE  = 1.00,
+		scale      = 1,
+		viewport   = Vector2.new(1280, 720),
+		guiInset   = Vector2.new(0, 0),
+		topPad     = 0,
+		bottomPad  = 0,
+		device     = "desktop",
+		listeners  = {},
 	}
-	siriusValues.autoScale = autoScale
+	siriusValues.responsive = SiriusResponsive
 
-	-- ScreenGui safe-area config: keep our UI inside the device safe
-	-- area on mobile (notch, status bar) while staying flush behind
-	-- the Roblox top bar on desktop where there is no inset.
-	pcall(function()
-		if Enum.ScreenInsets and Enum.ScreenInsets.DeviceSafeInsets then
-			UI.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
-		end
-	end)
+	-- ====== Wrapper Frame: every existing UI child gets reparented
+	-- into this Frame so a single UIScale shrinks them uniformly.
+	-- The local variable bindings captured at lines 6734-6750 stay
+	-- valid because they're captured by reference, not by parent.
+	local root = Instance.new("Frame")
+	root.Name = "__SiriusResponsiveRoot"
+	root.BackgroundTransparency = 1
+	root.BorderSizePixel = 0
+	root.AnchorPoint = Vector2.new(0, 0)
+	root.Position = UDim2.new(0, 0, 0, 0)
+	root.Size = UDim2.new(1, 0, 1, 0)
+	root.ZIndex = 1
+	root.Parent = UI
+
+	-- Force the root ScreenGui to a deterministic inset state so the
+	-- pre-existing GuiInset compensation in makeDraggable (~line 8312)
+	-- and refreshPickerGuiInsetOffset (~line 13786) ‚Äî both of which
+	-- check `if ScreenGui.IgnoreGuiInset then add inset` ‚Äî produces
+	-- predictable, non-double-applied offsets. False = inherit the
+	-- Roblox topbar inset (UI lives below it); checks above no-op.
 	pcall(function() UI.IgnoreGuiInset = false end)
 
-	local function classifyDevice(viewport)
-		local touch    = userInputService.TouchEnabled
-		local mouse    = userInputService.MouseEnabled
-		local keyboard = userInputService.KeyboardEnabled
-		local minDim   = math.min(viewport.X, viewport.Y)
-		local maxDim   = math.max(viewport.X, viewport.Y)
-		if touch and not mouse and not keyboard then
-			-- Phones: long side under ~1300 px, or short side under ~520 px
-			if maxDim < 1300 or minDim < 520 then
-				return "phone"
+	local rootScale = Instance.new("UIScale")
+	rootScale.Name = "__SiriusRootScale"
+	rootScale.Scale = 1
+	rootScale.Parent = root
+
+	SiriusResponsive.root = root
+	SiriusResponsive.rootScale = rootScale
+
+	-- Reparent every existing top-level GuiObject (but not our own
+	-- wrapper) into root. We snapshot the child list first so the
+	-- iteration isn't disturbed by reparenting.
+	for _, child in ipairs(UI:GetChildren()) do
+		if child ~= root and child:IsA("GuiObject") then
+			child.Parent = root
+		end
+	end
+
+	-- Future top-level children (spectateBar.Parent = UI, dynamic
+	-- prompt clones, etc) get adopted automatically.
+	UI.ChildAdded:Connect(function(child)
+		if child == root then return end
+		if not child:IsA("GuiObject") then return end
+		-- defer so the script that just parented it can finish its
+		-- own setup (Position/Size/Visible) before we move it.
+		task.defer(function()
+			if child.Parent == UI then
+				child.Parent = root
 			end
+		end)
+	end)
+
+	-- ====== Viewport / scale recompute
+	-- Prefer UI.AbsoluteSize (post-inset, post-mobile-chrome) so we
+	-- size to the area panels can actually occupy. Fall back to the
+	-- camera viewport, then to a sane default. Matches the pattern
+	-- already used by the native helpers (getSiriusViewportSize).
+	local function readViewport()
+		local cam = workspace.CurrentCamera or camera
+		local vp  = cam and cam.ViewportSize or Vector2.new(1280, 720)
+		local okAbs, abs = pcall(function() return UI.AbsoluteSize end)
+		if okAbs and abs and abs.X > 0 and abs.Y > 0 then
+			vp = abs
+		end
+		if vp.X < 1 or vp.Y < 1 then vp = Vector2.new(1280, 720) end
+		return vp
+	end
+
+	local function classify(vp)
+		local touch = userInputService.TouchEnabled
+		local mouse = userInputService.MouseEnabled
+		local minDim = math.min(vp.X, vp.Y)
+		local maxDim = math.max(vp.X, vp.Y)
+		if touch and not mouse then
+			if maxDim < 1100 or minDim < 520 then return "phone" end
 			return "tablet"
 		end
-		if maxDim < 900 then return "phone" end
+		if maxDim < 900  then return "phone"  end
 		if maxDim < 1280 then return "tablet" end
 		return "desktop"
 	end
 
-	local function computeScale()
-		local cam = workspace.CurrentCamera or camera
-		local viewport = cam and cam.ViewportSize or Vector2.new(1280, 720)
-		if viewport.X < 1 or viewport.Y < 1 then
-			return 1, "desktop", viewport
+	function SiriusResponsive.designViewport()
+		-- design-space viewport (what panels should fit into AFTER
+		-- the wrapper UIScale shrinks them). Always >= camera vp.
+		local s = math.max(SiriusResponsive.scale, 0.0001)
+		local vp = SiriusResponsive.viewport
+		return Vector2.new(vp.X / s, vp.Y / s)
+	end
+
+	function SiriusResponsive.bottomInset()
+		return SiriusResponsive.bottomPad
+	end
+
+	function SiriusResponsive.topInset()
+		return SiriusResponsive.topPad
+	end
+
+	function SiriusResponsive.bottomY(designOffset)
+		return designOffset - SiriusResponsive.bottomPad
+	end
+
+	function SiriusResponsive.topY(designOffset)
+		return designOffset + SiriusResponsive.topPad
+	end
+
+	function SiriusResponsive.isPhone()   return SiriusResponsive.device == "phone"   end
+	function SiriusResponsive.isTablet()  return SiriusResponsive.device == "tablet"  end
+	function SiriusResponsive.isDesktop() return SiriusResponsive.device == "desktop" end
+	function SiriusResponsive.isTouch()   return SiriusResponsive.device ~= "desktop" end
+
+	function SiriusResponsive.onChange(fn)
+		table.insert(SiriusResponsive.listeners, fn)
+		return fn
+	end
+
+	function SiriusResponsive.recompute()
+		local vp = readViewport()
+		SiriusResponsive.viewport = vp
+
+		-- Single uniform scale, capped at 1.0 (PC look preserved
+		-- byte-for-byte at >= the design viewport).
+		local s = math.min(vp.X / SiriusResponsive.DESIGN.X, vp.Y / SiriusResponsive.DESIGN.Y)
+		s = math.clamp(s, SiriusResponsive.MIN_SCALE, SiriusResponsive.MAX_SCALE)
+		SiriusResponsive.scale = s
+		SiriusResponsive.rootScale.Scale = s
+		if SiriusResponsive.promptScale then
+			SiriusResponsive.promptScale.Scale = s
 		end
 
-		local category = classifyDevice(viewport)
-		-- Same design viewport on every device -> identical look across
-		-- PC/tablet/phone. min(axis ratios) so panels never overflow
-		-- either axis, then clamped so we never UPscale past 1.0 (PC).
-		local s = math.min(viewport.X / BASE_DESIGN.X, viewport.Y / BASE_DESIGN.Y)
-		return math.clamp(s, MIN_SCALE, MAX_SCALE), category, viewport
-	end
+		SiriusResponsive.device = classify(vp)
 
-	-- Responsive helpers consumed elsewhere in the script
-	function siriusValues.deviceCategory() return autoScale.category end
-	function siriusValues.isPhone()    return autoScale.category == "phone"   end
-	function siriusValues.isTablet()   return autoScale.category == "tablet"  end
-	function siriusValues.isDesktop()  return autoScale.category == "desktop" end
-	function siriusValues.responsiveScale() return autoScale.current end
-	function siriusValues.viewportSize()
-		local cam = workspace.CurrentCamera or camera
-		if cam then return cam.ViewportSize end
-		return autoScale.viewport
-	end
-
-	-- Effective viewport AFTER the per-panel UIScale (which divides
-	-- offsets back down). When a panel sets `Size = UDim2.new(0, W, 0, H)`
-	-- and we pass that through fitSize, we want it clamped so that
-	-- W * scale <= viewport.X - padX. So the usable offset is
-	-- (viewport.X - padX) / scale, which is what fitSize computes.
-	function siriusValues.fitSize(w, h, padX, padY)
-		local vp = siriusValues.viewportSize()
-		local s  = math.max(autoScale.current, 0.0001)
-		local px = padX or (autoScale.category == "phone" and 14 or 28)
-		local py = padY or (autoScale.category == "phone" and 90 or 132)
-		local maxW = math.max(60, (vp.X - px) / s)
-		local maxH = math.max(60, (vp.Y - py) / s)
-		return UDim2.new(0, math.min(w, maxW), 0, math.min(h, maxH))
-	end
-
-	-- Safe insets for bottom-anchored elements (smartBar/toggle/toasts)
-	-- and the top notification column. Kept small so PC-look is preserved
-	-- and we only nudge things off device hardware (notch, gesture bar).
-	function siriusValues.bottomSafeInset()
-		if autoScale.category == "phone"  then return 14 end
-		if autoScale.category == "tablet" then return 8  end
-		return 0
-	end
-	function siriusValues.topSafeInset()
-		if autoScale.category == "phone"  then return 10 end
-		if autoScale.category == "tablet" then return 4  end
-		return 0
-	end
-
-	local function ensureScale(child)
-		if not child or not child:IsA("GuiObject") then return nil end
-		local existing = child:FindFirstChild(AUTOSCALE_TAG)
-		if existing and existing:IsA("UIScale") then return existing end
-		local s = Instance.new("UIScale")
-		s.Name = AUTOSCALE_TAG
-		s.Scale = autoScale.current
-		s.Parent = child
-		return s
-	end
-
-	-- Per-panel clamp: after layout settles, push any panel that has
-	-- spilled past the viewport edges back inside. Uses ABSOLUTE coords
-	-- (post-UIScale) so we correct for whatever the original asset said.
-	local clampConns = {}
-	local function clampToViewport(child)
-		if not child or not child:IsA("GuiObject") then return end
-		if not child.Visible then return end
-		local cam = workspace.CurrentCamera or camera
-		if not cam then return end
-		local vp = cam.ViewportSize
-		if vp.X < 1 or vp.Y < 1 then return end
-
-		local absPos  = child.AbsolutePosition
-		local absSize = child.AbsoluteSize
-		if absSize.X < 1 or absSize.Y < 1 then return end
-
-		local dx, dy = 0, 0
-		local right  = absPos.X + absSize.X
-		local bottom = absPos.Y + absSize.Y
-
-		if right  > vp.X - SAFE_PAD then dx = (vp.X - SAFE_PAD) - right end
-		if bottom > vp.Y - SAFE_PAD then dy = (vp.Y - SAFE_PAD) - bottom end
-		if absPos.X + dx < SAFE_PAD then dx = SAFE_PAD - absPos.X end
-		if absPos.Y + dy < SAFE_PAD then dy = SAFE_PAD - absPos.Y end
-
-		if math.abs(dx) < 0.5 and math.abs(dy) < 0.5 then return end
-
-		local p = child.Position
-		child.Position = UDim2.new(
-			p.X.Scale, p.X.Offset + dx,
-			p.Y.Scale, p.Y.Offset + dy
-		)
-	end
-	siriusValues.clampToViewport = clampToViewport
-
-	local function bindClamp(child)
-		if not child or not child:IsA("GuiObject") then return end
-		if clampConns[child] then return end
-		local conns = {}
-		conns[#conns + 1] = child:GetPropertyChangedSignal("Visible"):Connect(function()
-			if child.Visible then task.defer(clampToViewport, child) end
-		end)
-		conns[#conns + 1] = child:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-			if child.Visible then task.defer(clampToViewport, child) end
-		end)
-		clampConns[child] = conns
-		task.defer(clampToViewport, child)
-	end
-
-	-- Fired whenever scale/category changes so panels with cached
-	-- "design" sizes can refresh themselves (smartBar already uses
-	-- siriusValues.getResponsiveSmartBarSize; this signal lets other
-	-- panels do the same without polling).
-	function siriusValues.onResponsiveChange(fn)
-		autoScale.applyConns[fn] = true
-		return function() autoScale.applyConns[fn] = nil end
-	end
-
-	function autoScale.apply()
-		local s, category, viewport = computeScale()
-		local prevCategory = autoScale.category
-		local prevScale = autoScale.current
-		autoScale.current  = s
-		autoScale.category = category
-		autoScale.viewport = viewport
-		for _, child in ipairs(UI:GetChildren()) do
-			if child:IsA("GuiObject") then
-				local scale = ensureScale(child)
-				if scale then scale.Scale = s end
-				bindClamp(child)
-				if child.Visible then
-					task.defer(clampToViewport, child)
-				end
-			end
+		-- Safe-area insets. GuiService gives the top inset (Roblox
+		-- topbar + device notch). For the bottom we estimate from
+		-- the gap between camera vp height and our ScreenGui height
+		-- (Roblox doesn't expose a direct API for the gesture bar).
+		local ok, inset = pcall(function() return guiService:GetGuiInset() end)
+		if ok and typeof(inset) == "Vector2" then
+			SiriusResponsive.guiInset = inset
 		end
-		if prevCategory ~= category or math.abs(prevScale - s) > 0.001 then
-			for fn in pairs(autoScale.applyConns) do
-				task.spawn(function()
-					local ok, err = pcall(fn, s, category, viewport)
-					if not ok then warn("[siriusValues.onResponsiveChange] " .. tostring(err)) end
-				end)
-			end
+		if SiriusResponsive.device == "desktop" then
+			SiriusResponsive.topPad = 0
+			SiriusResponsive.bottomPad = 0
+		else
+			-- On touch we add a small extra clearance so the dock /
+			-- top floats sit comfortably away from device chrome.
+			SiriusResponsive.topPad    = (SiriusResponsive.device == "phone" and 10 or 4)
+			SiriusResponsive.bottomPad = (SiriusResponsive.device == "phone" and 14 or 8)
+		end
+
+		for _, fn in ipairs(SiriusResponsive.listeners) do
+			local lok, err = pcall(fn, SiriusResponsive)
+			if not lok then warn("[SiriusResponsive listener] " .. tostring(err)) end
 		end
 	end
 
-	UI.ChildAdded:Connect(function(child)
-		if child:IsA("GuiObject") then
-			task.defer(function()
-				local scale = ensureScale(child)
-				if scale then scale.Scale = autoScale.current end
-				bindClamp(child)
-				if child.Visible then clampToViewport(child) end
-			end)
-		end
-	end)
-
+	-- ====== Hooks
 	local function bindCamera()
-		if autoScale.viewportConn then
-			autoScale.viewportConn:Disconnect()
-			autoScale.viewportConn = nil
-		end
 		local cam = workspace.CurrentCamera
 		if cam then
-			autoScale.viewportConn = cam:GetPropertyChangedSignal("ViewportSize"):Connect(autoScale.apply)
+			cam:GetPropertyChangedSignal("ViewportSize"):Connect(SiriusResponsive.recompute)
 		end
-		autoScale.apply()
 	end
-
-	autoScale.cameraConn = workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindCamera)
-	-- Also react when the user toggles touch / connects a controller
-	-- mid-session (e.g. iPad + bluetooth keyboard).
-	userInputService.LastInputTypeChanged:Connect(function() autoScale.apply() end)
+	workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+		bindCamera()
+		SiriusResponsive.recompute()
+	end)
 	bindCamera()
-end
+	UI:GetPropertyChangedSignal("AbsoluteSize"):Connect(SiriusResponsive.recompute)
+	userInputService.LastInputTypeChanged:Connect(SiriusResponsive.recompute)
 
--- ============================================================
--- Mobile container nudges (intentionally minimal)
--- The user wants the PC look on every device, so we DO NOT
--- override layouts -- we only shift the top-anchored container
--- (notificationContainer) down past the device safe-area inset
--- so its first toast isn't clipped by a phone notch / status
--- bar / Roblox chat bar. Everything else uses the exact PC
--- design coordinates.
--- ============================================================
-do
-	local designs = {}
-
-	local function captureDesign(child)
-		if not child or not child:IsA("GuiObject") then return nil end
-		local d = designs[child]
-		if d then return d end
-		d = {
-			AnchorPoint = child.AnchorPoint,
-			Position    = child.Position,
-			Size        = child.Size,
-		}
-		designs[child] = d
-		return d
-	end
-
-	local function applyMobileContainers()
-		local top    = siriusValues.topSafeInset()
-
-		-- Notification column (top): just shift it past the safe inset.
-		local d = captureDesign(notificationContainer)
-		if d then
-			notificationContainer.AnchorPoint = d.AnchorPoint
-			notificationContainer.Size        = d.Size
-			if top > 0 then
-				notificationContainer.Position = UDim2.new(
-					d.Position.X.Scale, d.Position.X.Offset,
-					d.Position.Y.Scale, d.Position.Y.Offset + top)
-			else
-				notificationContainer.Position = d.Position
-			end
-		end
-	end
-
-	siriusValues.applyMobileContainers = applyMobileContainers
-	applyMobileContainers()
-	siriusValues.onResponsiveChange(applyMobileContainers)
-end
-
--- ============================================================
--- Home section layout fitter
--- The asset's home cards (Server / Friends / User / Client)
--- have fixed pixel sizes that on a mobile viewport overlap
--- both each other and the "Welcome home, ..." title.
--- We:
---   1. Capture the original sizes once.
---   2. On every openHome / viewport change, pin the title and
---      subtitle to the top of homeContainer.
---   3. Place the four cards in a clean 2x2 grid below the title,
---      resizing each card so the grid always fits inside the
---      remaining viewport without crossing the smart bar.
--- ============================================================
-do
-	local homeOriginals = nil
-	local homeTitleOriginal = nil
-	local homeSubtitleOriginal = nil
-	local layoutOrder = {Server = 1, Friends = 2, User = 3, Client = 4}
-
-	local function captureHomeOriginals()
-		if homeOriginals then return end
-		if not homeContainer or not homeContainer:FindFirstChild("Interactions") then return end
-		homeOriginals = {}
-		for _, item in ipairs(homeContainer.Interactions:GetChildren()) do
-			if item:IsA("GuiObject") then
-				homeOriginals[item.Name] = {
-					Position    = item.Position,
-					Size        = item.Size,
-					AnchorPoint = item.AnchorPoint,
-				}
-			end
-		end
-		if homeContainer:FindFirstChild("Title") then
-			homeTitleOriginal = {
-				AnchorPoint = homeContainer.Title.AnchorPoint,
-				Position    = homeContainer.Title.Position,
-				Size        = homeContainer.Title.Size,
-			}
-		end
-		if homeContainer:FindFirstChild("Subtitle") then
-			homeSubtitleOriginal = {
-				AnchorPoint = homeContainer.Subtitle.AnchorPoint,
-				Position    = homeContainer.Subtitle.Position,
-				Size        = homeContainer.Subtitle.Size,
-			}
-		end
-	end
-
-	function siriusValues.relayoutHomeItems()
-		if not homeContainer or not homeContainer:FindFirstChild("Interactions") then return end
-		captureHomeOriginals()
-		if not homeOriginals then return end
-
-		local cam = workspace.CurrentCamera or camera
-		local vp = (cam and cam.ViewportSize) or Vector2.new(1280, 720)
-
-		-- Title / subtitle pinned to top-center so they never bleed
-		-- into the card grid.
-		local titleH    = 36
-		local subtitleH = 22
-		local headerTop = 32
-		if homeContainer:FindFirstChild("Title") then
-			homeContainer.Title.AnchorPoint = Vector2.new(0.5, 0)
-			homeContainer.Title.Position    = UDim2.new(0.5, 0, 0, headerTop)
-			homeContainer.Title.Size        = UDim2.new(0, math.min(720, vp.X - 60), 0, titleH)
-			homeContainer.Title.TextXAlignment = Enum.TextXAlignment.Center
-		end
-		if homeContainer:FindFirstChild("Subtitle") then
-			homeContainer.Subtitle.AnchorPoint = Vector2.new(0.5, 0)
-			homeContainer.Subtitle.Position    = UDim2.new(0.5, 0, 0, headerTop + titleH + 4)
-			homeContainer.Subtitle.Size        = UDim2.new(0, math.min(560, vp.X - 80), 0, subtitleH)
-			homeContainer.Subtitle.TextXAlignment = Enum.TextXAlignment.Center
-		end
-
-		-- Cards in display order
-		local items = {}
-		for _, item in ipairs(homeContainer.Interactions:GetChildren()) do
-			if item:IsA("GuiObject") and homeOriginals[item.Name] then
-				table.insert(items, item)
-			end
-		end
-		table.sort(items, function(a, b)
-			return (layoutOrder[a.Name] or 99) < (layoutOrder[b.Name] or 99)
-		end)
-		if #items == 0 then return end
-
-		-- Available area: below the title block, above the smart bar.
-		local gridTop      = headerTop + titleH + subtitleH + 18
-		local gridBottom   = vp.Y - 110   -- room for smartBar + a margin
-		local availH       = math.max(160, gridBottom - gridTop)
-		local hPad, vPad   = 18, 18
-		local availW       = vp.X - 60    -- 30 px gutter on each side
-
-		-- Decide row count: 1 row if everything fits side-by-side
-		-- nicely, else 2 rows of 2.
-		local n = #items
-		local cols = (n <= 2) and n or 2
-		local rows = math.ceil(n / cols)
-
-		local cellW = math.floor((availW - (cols - 1) * hPad) / cols)
-		local cellH = math.floor((availH - (rows - 1) * vPad) / rows)
-		-- Cap cell size so cards don't get cartoonishly large on huge
-		-- viewports (PC look = ~440x250 per card).
-		cellW = math.min(cellW, 440)
-		cellH = math.min(cellH, 260)
-
-		local gridW = cellW * cols + hPad * (cols - 1)
-		local gridH = cellH * rows + vPad * (rows - 1)
-		local startX = math.floor((vp.X - gridW) / 2)
-		local startY = gridTop + math.floor(((gridBottom - gridTop) - gridH) / 2)
-		if startY < gridTop then startY = gridTop end
-
-		for i, item in ipairs(items) do
-			local col = (i - 1) % cols
-			local row = math.floor((i - 1) / cols)
-			item.AnchorPoint = Vector2.new(0, 0)
-			item.Position = UDim2.new(0, startX + col * (cellW + hPad), 0, startY + row * (cellH + vPad))
-			item.Size = UDim2.new(0, cellW, 0, cellH)
-		end
-	end
-
-	siriusValues.onResponsiveChange(function()
-		if homeContainer and homeContainer.Visible then
-			siriusValues.relayoutHomeItems()
-		end
-	end)
-end
-
--- ============================================================
--- Smart-bar toggle (the chevron that opens/closes the smartbar)
--- Force the button to receive input on every device, force a
--- high ZIndex so panels closing on top can't eat the tap, and
--- parent a finger-sized invisible hitbox so the small chevron
--- is easy to hit on touch. The hitbox stays visually identical
--- to PC -- only the touchable area grows.
--- ============================================================
-do
-	pcall(function()
-		toggle.Active = true
-		toggle.Selectable = true
-		toggle.AutoButtonColor = false
-		toggle.ZIndex = math.max(toggle.ZIndex or 1, 950)
-	end)
-
-	if not toggle:FindFirstChild("__SiriusToggleHitbox") then
-		local hitbox = Instance.new("TextButton")
-		hitbox.Name = "__SiriusToggleHitbox"
-		hitbox.BackgroundTransparency = 1
-		hitbox.Text = ""
-		hitbox.AutoButtonColor = false
-		hitbox.AnchorPoint = Vector2.new(0.5, 0.5)
-		hitbox.Position = UDim2.new(0.5, 0, 0.5, 0)
-		hitbox.Size = UDim2.new(2.4, 24, 2.4, 24)
-		hitbox.ZIndex = (toggle.ZIndex or 950) + 1
-		hitbox.Active = true
-		hitbox.Selectable = true
-		hitbox.Modal = false
-		hitbox.Parent = toggle
-		siriusValues.toggleHitbox = hitbox
-	end
+	-- Initial compute
+	SiriusResponsive.recompute()
 end
 
 characterRuntime.characterScrollFadeReady = false
@@ -7683,7 +7425,7 @@ function characterRuntime.positionCharacterPanelContent()
 	setY(interactions:FindFirstChild("Sliders"), contentY)
 	setY(interactions:FindFirstChild("Grid"), contentY)
 
-	local function placeServerhopAndRejoin()
+	task.defer(function()
 		if not interactions or not interactions.Parent then return end
 
 		local grid = interactions:FindFirstChild("Grid")
@@ -7696,26 +7438,7 @@ function characterRuntime.positionCharacterPanelContent()
 
 		setY(interactions:FindFirstChild("Serverhop"), buttonY)
 		setY(interactions:FindFirstChild("Rejoin"), buttonY)
-	end
-
-	-- Run once, then a few more times as the grid layout settles (the
-	-- first frame after openCharacter can have AbsoluteContentSize = 0
-	-- which leaves Serverhop/Rejoin overlapping the action grid).
-	task.defer(placeServerhopAndRejoin)
-	task.delay(0.06, placeServerhopAndRejoin)
-	task.delay(0.18, placeServerhopAndRejoin)
-	task.delay(0.4,  placeServerhopAndRejoin)
-
-	-- Keep re-positioning whenever the grid recomputes its size for
-	-- good (handles late-arriving action buttons, beta toggles, etc.).
-	if not characterRuntime.serverhopReactiveBound then
-		local grid = interactions:FindFirstChild("Grid")
-		local gridLayout = grid and (grid:FindFirstChildOfClass("UIGridLayout") or grid:FindFirstChildOfClass("UIListLayout"))
-		if gridLayout then
-			characterRuntime.serverhopReactiveBound = true
-			gridLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(placeServerhopAndRejoin)
-		end
-	end
+	end)
 end
 
 function characterRuntime.refreshCharacterPanelScroll()
@@ -8648,7 +8371,13 @@ local function makeDraggable(object)
 	local renderStepped = runService.RenderStepped:Connect(function()
 		if dragging then
 			local position = (pointerPosition or getPointerPosition(activeInput)) + relative + offset
-			object.Position = UDim2.fromOffset(position.X, position.Y)
+			-- Under the wrapper UIScale S, an offset of P renders at S*P
+			-- screen px. To put the object's anchor at the screen
+			-- position `position`, set offset = position / S.
+			local r = siriusValues.responsive
+			local s = (r and r.scale) or 1
+			if s < 0.0001 then s = 1 end
+			object.Position = UDim2.fromOffset(position.X / s, position.Y / s)
 		end
 	end)
 
@@ -8965,13 +8694,23 @@ local function figureNotifications()
 				else
 					notificationsSize += notification.Size.Y.Offset + 5
 				end
-				local desiredPosition = UDim2.new(0.5, 0, 0, notificationsSize)
+				local desiredPosition = UDim2.new(0.5, 0, 0, siriusValues.topY(notificationsSize))
 				if notification.Position ~= desiredPosition then
 					notification:TweenPosition(desiredPosition, "Out", "Quint", 0.8, true)
 				end
 			end
-		end	
+		end
 	end
+end
+
+-- Refire notification stacking whenever responsive insets change so
+-- the top-safe-area offset stays accurate after rotation / device
+-- change. Guarded so it only registers once.
+if siriusValues.responsive and siriusValues.responsive.onChange and not siriusValues._notifResponsiveBound then
+	siriusValues._notifResponsiveBound = true
+	siriusValues.responsive.onChange(function()
+		pcall(figureNotifications)
+	end)
 end
 
 local contentProvider = game:GetService("ContentProvider")
@@ -9016,7 +8755,7 @@ local function queueNotification(Title, Description, Image)
 				newNotification.Icon.Image = 'rbxassetid://'..Image or 0
 			end
 
-			newNotification:TweenPosition(UDim2.new(0.5, 0, 0, newNotification.Size.Y.Offset + 2), "Out", "Quint", 0.9, true)
+			newNotification:TweenPosition(UDim2.new(0.5, 0, 0, siriusValues.topY(newNotification.Size.Y.Offset + 2)), "Out", "Quint", 0.9, true)
 			task.wait(0.1)
 			tweenService:Create(newNotification, TweenInfo.new(0.8, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 320, 0, newNotification.Description.TextBounds.Y + 50)}):Play()
 			task.wait(0.05)
@@ -10834,6 +10573,12 @@ do
 		parts = nil
 	}
 	function siriusValues.getPlayerActionPickerRootSize()
+		-- Use design-space viewport so the clamp picks panel sizes
+		-- in pre-scale pixels (the root UIScale shrinks them down to
+		-- camera pixels). Falls back gracefully before responsive is
+		-- initialised.
+		local r = siriusValues.responsive
+		if r and r.designViewport then return r.designViewport() end
 		local rootSize = camera and camera.ViewportSize or Vector2.new(1280, 720)
 		pcall(function()
 			if UI.AbsoluteSize.X > 0 and UI.AbsoluteSize.Y > 0 then
@@ -10865,8 +10610,7 @@ do
 		)
 	end
 	local function getSpectateTogglePickerGeometry()
-		local topPad = (siriusValues.topSafeInset and siriusValues.topSafeInset()) or 0
-		return UDim2.new(0.5, 0, 0, 18 + topPad + spectateToggleSize.Y * 0.5), spectateToggleSize
+		return UDim2.new(0.5, 0, 0, siriusValues.topY(18) + spectateToggleSize.Y * 0.5), spectateToggleSize
 	end
 	local function getPlayerActionPickerGeometry()
 		playerActionPickerCurrentSize = clampPlayerActionPickerSize(playerActionPickerCurrentSize)
@@ -10924,7 +10668,7 @@ do
 		if not spectateBar then return end
 
 		spectateBar.Size = UDim2.fromOffset(spectateToggleSize.X, spectateToggleSize.Y)
-		spectateBar.Position = UDim2.new(0.5, 0, 0, 18 + ((siriusValues.topSafeInset and siriusValues.topSafeInset()) or 0))
+		spectateBar.Position = UDim2.new(0.5, 0, 0, siriusValues.topY(18))
 	end
 
 	local function cancelSpectateMorphTweens()
@@ -11349,7 +11093,7 @@ local function ensureSpectateBar()
 	spectateBar = Instance.new("CanvasGroup")
 	spectateBar.Name = "SiriusSpectateControl"
 	spectateBar.AnchorPoint = Vector2.new(0.5, 0)
-		spectateBar.Position = UDim2.new(0.5, 0, 0, 18 + ((siriusValues.topSafeInset and siriusValues.topSafeInset()) or 0))
+		spectateBar.Position = UDim2.new(0.5, 0, 0, siriusValues.topY(18))
 		spectateBar.Size = UDim2.fromOffset(spectateToggleSize.X, spectateToggleSize.Y)
 		spectateBar.BackgroundColor3 = Color3.fromRGB(13, 13, 13)
 		spectateBar.BackgroundTransparency = 1
@@ -12860,7 +12604,9 @@ local function ensureLiveTrackPanel()
 	end
 
 		local function getLiveTrackScreenMax()
-		local rootSize = UI.AbsoluteSize
+		-- design-space so the live-track panel sizes pre-scale
+		local r = siriusValues.responsive
+		local rootSize = (r and r.designViewport and r.designViewport()) or UI.AbsoluteSize
 		if rootSize.X <= 0 or rootSize.Y <= 0 then
 			rootSize = camera.ViewportSize
 		end
@@ -14010,6 +13756,10 @@ local function ensurePlayerActionPicker()
 		}
 
 		local function getPickerRootSize()
+			-- design-space viewport so picker drag/center math uses
+			-- pre-scale pixels (the root UIScale shrinks the result)
+			local r = siriusValues.responsive
+			if r and r.designViewport then return r.designViewport() end
 			local rootSize = camera.ViewportSize
 			pcall(function()
 				if UI.AbsoluteSize.X > 0 and UI.AbsoluteSize.Y > 0 then
@@ -14025,8 +13775,21 @@ local function ensurePlayerActionPicker()
 
 		local function syncPickerShadow()
 			if not shadow or not panel then return end
-			shadow.Position = UDim2.fromOffset(panel.AbsolutePosition.X + panel.AbsoluteSize.X * 0.5, panel.AbsolutePosition.Y + panel.AbsoluteSize.Y * 0.5 + 16)
-			shadow.Size = UDim2.fromOffset(panel.AbsoluteSize.X + 76, panel.AbsoluteSize.Y + 78)
+			-- panel.AbsolutePosition / AbsoluteSize are screen-space
+			-- (post-scale). shadow is parented under the wrapper
+			-- UIScale so its fromOffset is in design-space ‚Äî divide
+			-- the screen values by S to convert. The constants 16/76/78
+			-- stay as design-space px (they get *S to screen).
+			local r = siriusValues.responsive
+			local s = (r and r.scale) or 1
+			if s < 0.0001 then s = 1 end
+			local absPos  = panel.AbsolutePosition
+			local absSize = panel.AbsoluteSize
+			shadow.Position = UDim2.fromOffset(
+				absPos.X / s + (absSize.X / s) * 0.5,
+				absPos.Y / s + (absSize.Y / s) * 0.5 + 16
+			)
+			shadow.Size = UDim2.fromOffset(absSize.X / s + 76, absSize.Y / s + 78)
 		end
 
 		local function lerpVector2(from, to, alpha)
@@ -14157,9 +13920,15 @@ local function ensurePlayerActionPicker()
 			if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then return end
 			if not dragStart or not dragStartPosition then return end
 
+			-- All math in DESIGN SPACE. getPickerRootSize() returns
+			-- design-space; panel.AbsoluteSize and input.Position are
+			-- screen-space, so divide them by the wrapper scale S.
+			local r = siriusValues.responsive
+			local s = (r and r.scale) or 1
+			if s < 0.0001 then s = 1 end
 			local rootSize = getPickerRootSize()
-			local panelSize = panel.AbsoluteSize
-			local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStart
+			local panelSize = panel.AbsoluteSize / s
+			local delta = (Vector2.new(input.Position.X, input.Position.Y) - dragStart) / s
 			local startCenter = Vector2.new(dragStartPosition.X.Offset, dragStartPosition.Y.Offset)
 
 			if dragStartPosition.X.Scale ~= 0 or dragStartPosition.Y.Scale ~= 0 then
@@ -14287,7 +14056,15 @@ local function ensurePlayerActionPicker()
 			refreshPickerGuiInsetOffset()
 			resizeStartPointer = pointerVectorFromInput(input)
 			resizePointerPosition = resizeStartPointer
-			resizeStartSize = panel.AbsoluteSize
+			-- Convert screen-space AbsoluteSize to design-space so the
+			-- resize math (which assigns back to design-space Size) is
+			-- consistent. Pointer deltas are also divided by S below.
+			do
+				local r = siriusValues.responsive
+				local s = (r and r.scale) or 1
+				if s < 0.0001 then s = 1 end
+				resizeStartSize = panel.AbsoluteSize / s
+			end
 			local rootSize = getPickerRootSize()
 			resizeStartCenter = Vector2.new(panel.Position.X.Offset, panel.Position.Y.Offset)
 			if panel.Position.X.Scale ~= 0 or panel.Position.Y.Scale ~= 0 then
@@ -14373,7 +14150,13 @@ local function ensurePlayerActionPicker()
 
 			local rootSize = getPickerRootSize()
 			resizePointerPosition = pointerVectorFromInput(input)
-			local delta = resizePointerPosition - resizeStartPointer
+			-- Convert screen-space pointer delta to design space so
+			-- adding it to design-space resizeStartSize produces a
+			-- design-space target size.
+			local r_drag = siriusValues.responsive
+			local s_drag = (r_drag and r_drag.scale) or 1
+			if s_drag < 0.0001 then s_drag = 1 end
+			local delta = (resizePointerPosition - resizeStartPointer) / s_drag
 			local maxWidth = math.min(playerActionPickerMaxSize.X, math.max(playerActionPickerMinSize.X, rootSize.X - 80))
 			local maxHeight = math.min(playerActionPickerMaxSize.Y, math.max(playerActionPickerMinSize.Y, rootSize.Y - 80))
 			local nextWidth = math.clamp(resizeStartSize.X + (delta.X * 2), playerActionPickerMinSize.X, maxWidth)
@@ -15904,6 +15687,9 @@ local function ensurePlayerActionPicker()
 	local resizeStartTopLeft
 
 	local function pickerRootSize()
+		-- design-space viewport (matches getPickerRootSize sibling)
+		local r = siriusValues.responsive
+		if r and r.designViewport then return r.designViewport() end
 		local rootSize = camera.ViewportSize
 		pcall(function()
 			if UI.AbsoluteSize.X > 0 and UI.AbsoluteSize.Y > 0 then
@@ -15938,22 +15724,35 @@ local function ensurePlayerActionPicker()
 		}):Play()
 	end
 
+	-- All drag/resize math below is kept in DESIGN SPACE. Inputs from
+	-- UserInputService are raw screen px; we divide by the responsive
+	-- scale S so that adding/clamping against the design-space rootSize
+	-- and assigning back to Position/Size offsets is consistent.
+	local function _resScale()
+		local r = siriusValues.responsive
+		local s = (r and r.scale) or 1
+		if s < 0.0001 then s = 1 end
+		return s
+	end
+
 	top.InputBegan:Connect(function(input, processed)
 		if processed or not inputIsPointer(input) then return end
 		local inputPosition = Vector2.new(input.Position.X, input.Position.Y)
 		if inputPosition.X > close.AbsolutePosition.X - 8 then return end
 
 		pickerDragging = true
-		dragOffset = inputPosition - panel.AbsolutePosition
+		local s = _resScale()
+		dragOffset = (inputPosition - panel.AbsolutePosition) / s
 	end)
 
 	resizeHandle.InputBegan:Connect(function(input, processed)
 		if processed or not inputIsPointer(input) then return end
 
 		pickerResizing = true
-		resizeStartPosition = Vector2.new(input.Position.X, input.Position.Y)
-		resizeStartSize = panel.AbsoluteSize
-		resizeStartTopLeft = panel.AbsolutePosition
+		local s = _resScale()
+		resizeStartPosition = Vector2.new(input.Position.X, input.Position.Y) / s
+		resizeStartSize = panel.AbsoluteSize / s
+		resizeStartTopLeft = panel.AbsolutePosition / s
 		tweenService:Create(resizeIcon, TweenInfo.new(0.12, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
 			Size = UDim2.fromOffset(30, 30),
 			ImageColor3 = Color3.fromRGB(72, 72, 72)
@@ -15972,9 +15771,10 @@ local function ensurePlayerActionPicker()
 		if not playerActionPickerState.open then return end
 
 		if pickerDragging and not pickerResizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			local s = _resScale()
 			local rootSize = pickerRootSize()
-			local panelSize = panel.AbsoluteSize
-			local mousePosition = Vector2.new(input.Position.X, input.Position.Y)
+			local panelSize = panel.AbsoluteSize / s
+			local mousePosition = Vector2.new(input.Position.X, input.Position.Y) / s
 			local topLeft = mousePosition - dragOffset
 			local clampedTopLeft = Vector2.new(
 				math.clamp(topLeft.X, -80, rootSize.X - panelSize.X + 80),
@@ -15983,8 +15783,9 @@ local function ensurePlayerActionPicker()
 			local center = clampedTopLeft + panelSize / 2
 			panel.Position = UDim2.fromOffset(center.X, center.Y)
 		elseif pickerResizing and not pickerDragging and resizeStartPosition and resizeStartSize and resizeStartTopLeft then
+			local s = _resScale()
 			local rootSize = pickerRootSize()
-			local delta = Vector2.new(input.Position.X, input.Position.Y) - resizeStartPosition
+			local delta = (Vector2.new(input.Position.X, input.Position.Y) / s) - resizeStartPosition
 			local maxWidth = math.min(playerActionPickerMaxSize.X, math.max(playerActionPickerMinSize.X, rootSize.X - 80))
 			local maxHeight = math.min(playerActionPickerMaxSize.Y, math.max(playerActionPickerMinSize.Y, rootSize.Y - 80))
 			local newWidth = math.clamp(resizeStartSize.X + delta.X, playerActionPickerMinSize.X, maxWidth)
@@ -17266,9 +17067,10 @@ local function ensureMusicLibraryUI()
 	parseRobloxMusicLibrary()
 
 	if not musicPanel:GetAttribute("CustomMusicLibrarySize") then
+		local viewport = siriusValues.getDesignViewport()
 		musicPanel.AnchorPoint = Vector2.new(0.5, 0.5)
 		musicPanel.Position = UDim2.new(0.5, 0, 0.48, 0)
-		musicPanel.Size = siriusValues.fitSize(620, 570)
+		musicPanel.Size = UDim2.new(0, math.min(620, viewport.X - 42), 0, math.min(570, viewport.Y - 132))
 		musicPanel:SetAttribute("CustomMusicLibrarySize", true)
 	end
 
@@ -17782,9 +17584,10 @@ local function ensureMusicSettingsLibraryUI()
 	parseRobloxMusicLibrary()
 
 	if not musicPanel:GetAttribute("SettingsStyleMusicSize") then
+		local viewport = siriusValues.getDesignViewport()
 		musicPanel.AnchorPoint = settingsPanel.AnchorPoint
 		musicPanel.Position = settingsPanel.Position
-		musicPanel.Size = siriusValues.fitSize(613, 384)
+		musicPanel.Size = UDim2.new(0, math.min(613, viewport.X - 42), 0, math.min(384, viewport.Y - 132))
 		musicPanel:SetAttribute("SettingsStyleMusicSize", true)
 	end
 
@@ -18584,8 +18387,8 @@ local function syncExperienceInformation()
 			gameDetectionPrompt.Layer.ScriptSubtitle.Text = gameFound.description
 			gameDetectionPrompt.Thumbnail.Image = "https://assetgame.roblox.com/Game/Tools/ThumbnailAsset.ashx?aid="..tostring(placeId).."&fmt=png&wd=420&ht=420"
 
-			gameDetectionPrompt.Size = siriusValues.fitSize(550, 0)
-			gameDetectionPrompt.Position = UDim2.new(0.5, 0, 0, 120 + siriusValues.topSafeInset())
+			gameDetectionPrompt.Size = UDim2.new(0, 550, 0, 0)
+			gameDetectionPrompt.Position = UDim2.new(0.5, 0, 0, 120)
 			gameDetectionPrompt.UICorner.CornerRadius = UDim.new(0, 9)
 			gameDetectionPrompt.Thumbnail.UICorner.CornerRadius = UDim.new(0, 9)
 			gameDetectionPrompt.ScriptTitle.Position = UDim2.new(0, 30, 0.5, 0)
@@ -18600,8 +18403,8 @@ local function syncExperienceInformation()
 			tweenService:Create(gameDetectionPrompt.Thumbnail, TweenInfo.new(0.5, Enum.EasingStyle.Quint),  {ImageTransparency = 0.4}):Play()
 			tweenService:Create(gameDetectionPrompt.ScriptTitle, TweenInfo.new(0.6, Enum.EasingStyle.Quint),  {TextTransparency = 0}):Play()
 
-			tweenService:Create(gameDetectionPrompt, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Size = siriusValues.fitSize(587, 44)}):Play()
-			tweenService:Create(gameDetectionPrompt, TweenInfo.new(1, Enum.EasingStyle.Exponential), {Position = UDim2.new(0.5, 0, 0, 150 + siriusValues.topSafeInset())}):Play()
+			tweenService:Create(gameDetectionPrompt, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Size = UDim2.new(0, 587, 0, 44)}):Play()
+			tweenService:Create(gameDetectionPrompt, TweenInfo.new(1, Enum.EasingStyle.Exponential), {Position = UDim2.new(0.5, 0, 0, 150)}):Play()
 
 			task.wait(1)
 
@@ -18609,9 +18412,9 @@ local function syncExperienceInformation()
 
 			gameDetectionPrompt.Layer.Visible = true
 
-			tweenService:Create(gameDetectionPrompt, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Size = siriusValues.fitSize(473, 154)}):Play()
+			tweenService:Create(gameDetectionPrompt, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Size = UDim2.new(0, 473, 0, 154)}):Play()
 			tweenService:Create(gameDetectionPrompt.ScriptTitle, TweenInfo.new(1, Enum.EasingStyle.Exponential), {Position = UDim2.new(0, 23, 0.352, 0)}):Play()
-			tweenService:Create(gameDetectionPrompt, TweenInfo.new(1, Enum.EasingStyle.Exponential), {Position = UDim2.new(0.5, 0, 0, 200 + siriusValues.topSafeInset())}):Play()
+			tweenService:Create(gameDetectionPrompt, TweenInfo.new(1, Enum.EasingStyle.Exponential), {Position = UDim2.new(0.5, 0, 0, 200)}):Play()
 			tweenService:Create(gameDetectionPrompt.UICorner, TweenInfo.new(1, Enum.EasingStyle.Exponential), {CornerRadius = UDim.new(0, 13)}):Play()
 			tweenService:Create(gameDetectionPrompt.Thumbnail.UICorner, TweenInfo.new(1, Enum.EasingStyle.Exponential), {CornerRadius = UDim.new(0, 13)}):Play()
 			tweenService:Create(gameDetectionPrompt.Thumbnail, TweenInfo.new(1, Enum.EasingStyle.Exponential), {ImageTransparency = 0.5}):Play()
@@ -18637,7 +18440,7 @@ local function syncExperienceInformation()
 				tweenService:Create(gameDetectionPrompt.ScriptTitle, TweenInfo.new(0.3, Enum.EasingStyle.Quint),  {TextTransparency = 1}):Play()
 				tweenService:Create(gameDetectionPrompt.Layer.Run.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint),  {Transparency = 1}):Play()
 				task.wait(0.05)
-				tweenService:Create(gameDetectionPrompt, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = siriusValues.fitSize(400, 0)}):Play()
+				tweenService:Create(gameDetectionPrompt, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = UDim2.new(0, 400, 0, 0)}):Play()
 				tweenService:Create(gameDetectionPrompt.UICorner, TweenInfo.new(0.2, Enum.EasingStyle.Exponential), {CornerRadius = UDim.new(0, 5)}):Play()
 				tweenService:Create(gameDetectionPrompt.Thumbnail.UICorner, TweenInfo.new(0.2, Enum.EasingStyle.Exponential), {CornerRadius = UDim.new(0, 5)}):Play()
 				task.wait(0.41)
@@ -19203,7 +19006,7 @@ local function closePanel(panelName, openingOther)
 	debounce = true
 
 	local button = smartBar.Buttons:FindFirstChild(panelName)
-	local panel = UI:FindFirstChild(panelName)
+	local panel = (siriusValues.responsive.root or UI):FindFirstChild(panelName)
 
 	if not isPanel(panelName) then return end
 	if not (panel and button) then return end
@@ -19327,12 +19130,12 @@ local function openPanel(panelName)
 	debounce = true
 
 	local button = smartBar.Buttons:FindFirstChild(panelName)
-	local panel = UI:FindFirstChild(panelName)
+	local panel = (siriusValues.responsive.root or UI):FindFirstChild(panelName)
 
 	if not isPanel(panelName) then return end
 	if not (panel and button) then return end
 
-	for _, otherPanel in ipairs(UI:GetChildren()) do
+	for _, otherPanel in ipairs((siriusValues.responsive.root or UI):GetChildren()) do
 		if smartBar.Buttons:FindFirstChild(otherPanel.Name) then
 			if isPanel(otherPanel.Name) and otherPanel.Visible then
 				task.spawn(closePanel, otherPanel.Name, true)
@@ -19353,7 +19156,7 @@ local function openPanel(panelName)
 		characterRuntime.resetCharacterPanelHeaderScroll()
 	end
 
-	tweenService:Create(toggle, TweenInfo.new(0.65, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-(panelSize.Y.Offset + 95)))}):Play()
+	tweenService:Create(toggle, TweenInfo.new(0.65, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, -(panelSize.Y.Offset + 95))}):Play()
 
 	tweenService:Create(panel, TweenInfo.new(0.1, Enum.EasingStyle.Quint), {BackgroundTransparency = 0}):Play()
 	tweenService:Create(panel, TweenInfo.new(0.8, Enum.EasingStyle.Exponential), {Size = panelSize}):Play()
@@ -21100,7 +20903,7 @@ function promptModerator(player, role, promptTitle, promptSubtitle)
 	end
 	table.clear(siriusValues.moderatorPromptConnections)
 
-	moderatorDetectionPrompt.Size = siriusValues.fitSize(283, 175, 24, 110)
+	moderatorDetectionPrompt.Size = UDim2.new(0, 283, 0, 175)
 	moderatorDetectionPrompt.UIGradient.Offset = Vector2.new(0, 1)
 	wipeTransparency(moderatorDetectionPrompt, 1, true)
 	moderatorDetectionPrompt.Serverhop.Visible = true
@@ -21135,7 +20938,7 @@ function promptModerator(player, role, promptTitle, promptSubtitle)
 	end
 
 	tweenService:Create(moderatorDetectionPrompt, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {BackgroundTransparency = 0}):Play()
-	tweenService:Create(moderatorDetectionPrompt, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {Size = siriusValues.fitSize(300, 186, 24, 110)}):Play()
+	tweenService:Create(moderatorDetectionPrompt, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {Size = UDim2.new(0, 300, 0, 186)}):Play()
 	tweenService:Create(moderatorDetectionPrompt.UIGradient, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {Offset = Vector2.new(0, 0.65)}):Play()
 	tweenService:Create(moderatorDetectionPrompt.Title, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
 	tweenService:Create(moderatorDetectionPrompt.Subtitle, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
@@ -21163,7 +20966,7 @@ function promptModerator(player, role, promptTitle, promptSubtitle)
 		table.clear(siriusValues.moderatorPromptConnections)
 
 		tweenService:Create(moderatorDetectionPrompt, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
-		tweenService:Create(moderatorDetectionPrompt, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Size = siriusValues.fitSize(283, 175, 24, 110)}):Play()
+		tweenService:Create(moderatorDetectionPrompt, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Size = UDim2.new(0, 283, 0, 175)}):Play()
 		tweenService:Create(moderatorDetectionPrompt.UIGradient, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Offset = Vector2.new(0, 1)}):Play()
 		tweenService:Create(moderatorDetectionPrompt.Title, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
 		tweenService:Create(moderatorDetectionPrompt.Subtitle, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
@@ -21194,6 +20997,14 @@ function promptModerator(player, role, promptTitle, promptSubtitle)
 	table.insert(siriusValues.moderatorPromptConnections, moderatorDetectionPrompt.Serverhop.MouseLeave:Connect(function()
 		tweenService:Create(moderatorDetectionPrompt.ServersAvailableFade, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
 	end))
+
+	-- Touch fallback: show the hint at half-opacity by default on
+	-- touch devices so phone users see the affordance without hover.
+	pcall(function()
+		if siriusValues.responsive and siriusValues.responsive.isTouch and siriusValues.responsive.isTouch() then
+			moderatorDetectionPrompt.ServersAvailableFade.TextTransparency = 0.5
+		end
+	end)
 
 	table.insert(siriusValues.moderatorPromptConnections, moderatorDetectionPrompt.Serverhop.MouseButton1Click:Connect(function()
 		if promptClosed then return end
@@ -21256,7 +21067,6 @@ local function openHome()
 	if debounce then return end
 	debounce = true
 	homeContainer.Visible = true
-	if siriusValues.relayoutHomeItems then siriusValues.relayoutHomeItems() end
 
 	local homeBlur = Instance.new("BlurEffect", lighting)
 	homeBlur.Size = 0
@@ -21440,7 +21250,7 @@ local function openScriptSearch()
 	scriptSaveState.topButton.Size = UDim2.new(0, 36, 0, 34)
 	scriptSaveState.topButton.BackgroundTransparency = 1
 
-	scriptSearch.Size = siriusValues.fitSize(480, 23)
+	scriptSearch.Size = UDim2.new(0, 480, 0, 23)
 	scriptSearch.Position = UDim2.new(0.5, 0, 0.5, 0)
 	scriptSearch.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	scriptSearch.BackgroundTransparency = 1
@@ -21470,7 +21280,7 @@ local function openScriptSearch()
 	scriptSaveState.setBookmarkVisual(scriptSaveState.topButton.BookmarkVisual, false, true)
 
 	tweenService:Create(scriptSearch, TweenInfo.new(.5,Enum.EasingStyle.Quint),  {BackgroundTransparency = 0}):Play()
-	tweenService:Create(scriptSearch, TweenInfo.new(.5,Enum.EasingStyle.Quint),  {Size = siriusValues.fitSize(580, 43)}):Play()
+	tweenService:Create(scriptSearch, TweenInfo.new(.5,Enum.EasingStyle.Quint),  {Size = UDim2.new(0, 580, 0, 43)}):Play()
 	tweenService:Create(scriptSearch.Shadow, TweenInfo.new(.5,Enum.EasingStyle.Quint),  {ImageTransparency = 0.85}):Play()
 	task.wait(0.03)
 	tweenService:Create(scriptSearch.Icon, TweenInfo.new(.5,Enum.EasingStyle.Quint),  {ImageTransparency = 0}):Play()
@@ -21521,7 +21331,7 @@ local function closeScriptSearch()
 
 	scriptSearch.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	scriptSearch.UIGradient.Enabled = false
-	tweenService:Create(scriptSearch, TweenInfo.new(0.4, Enum.EasingStyle.Quint),  {Size = siriusValues.fitSize(520, 0)}):Play()
+	tweenService:Create(scriptSearch, TweenInfo.new(0.4, Enum.EasingStyle.Quint),  {Size = UDim2.new(0, 520, 0, 0)}):Play()
 	scriptSearch.SearchBox:ReleaseFocus()
 
 	task.wait(0.5)
@@ -22159,7 +21969,7 @@ local function confirmScriptRunMorph(scriptTitle, providerName, imageUrl, result
 
 		local openMotion = TweenInfo.new(0.58, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 		local contentMotion = TweenInfo.new(0.44, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-		tweenService:Create(scriptSearch, openMotion, {Position = UDim2.new(0.5, 0, 0.5, 0), Size = siriusValues.fitSize(520, 205), BackgroundTransparency = 0.02}):Play()
+		tweenService:Create(scriptSearch, openMotion, {Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(0, 520, 0, 205), BackgroundTransparency = 0.02}):Play()
 		tweenService:Create(scriptSearch.Shadow, openMotion, {ImageTransparency = 0.86}):Play()
 		tweenService:Create(scriptSearch.UIGradient, openMotion, {Offset = Vector2.new(0, 0.5)}):Play()
 		if morphShadowGradient then
@@ -23011,7 +22821,7 @@ function scriptSaveState.showSearchView()
 
 	tweenService:Create(scriptSearch.NoScriptsTitle, TweenInfo.new(0.2, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
 	tweenService:Create(scriptSearch.NoScriptsDesc, TweenInfo.new(0.2, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
-	tweenService:Create(scriptSearch, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {Size = siriusValues.fitSize(580, 43)}):Play()
+	tweenService:Create(scriptSearch, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {Size = UDim2.new(0, 580, 0, 43)}):Play()
 	tweenService:Create(scriptSearch.Icon, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {Position = UDim2.new(0.04, 0, 0.5, 0)}):Play()
 	tweenService:Create(scriptSearch.SearchBox, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {Position = UDim2.new(0.509, 0, 0.5, 0)}):Play()
 	tweenService:Create(scriptSearch.UIGradient, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {Offset = Vector2.new(0, 2)}):Play()
@@ -23684,7 +23494,7 @@ function scriptSaveState.showSavedList()
 
 	local pageMotion = TweenInfo.new(0.54, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 
-	tweenService:Create(scriptSearch, pageMotion, {Size = siriusValues.fitSize(580, 529)}):Play()
+	tweenService:Create(scriptSearch, pageMotion, {Size = UDim2.new(0, 580, 0, 529)}):Play()
 	tweenService:Create(scriptSearch.UIGradient, pageMotion, {Offset = Vector2.new(0, 0.6)}):Play()
 	tweenService:Create(scriptSaveState.topButton, pageMotion, {Position = UDim2.new(1, -54, 0, 18), Size = UDim2.new(0, 38, 0, 38)}):Play()
 	tweenService:Create(scriptSearch.List, pageMotion, {Position = UDim2.new(0, 28, 0, 146), Size = UDim2.new(1, -56, 1, -164)}):Play()
@@ -23740,7 +23550,7 @@ local function securityDetection(title, content, link, gradient, actions)
 	newSecurityPrompt.Name = "SecurityPrompt"
 
 	wipeTransparency(newSecurityPrompt, 1, true)
-	newSecurityPrompt.Size = siriusValues.fitSize(478, 150, 24, 120)
+	newSecurityPrompt.Size = UDim2.new(0, 478, 0, 150)
 
 	newSecurityPrompt.Title.Text = title
 	newSecurityPrompt.Subtitle.Text = content
@@ -23830,6 +23640,17 @@ local function securityDetection(title, content, link, gradient, actions)
 	newSecurityPrompt.FoundLink.MouseLeave:Connect(function()
 		newSecurityPrompt.FoundLink.Text = domain
 		tweenService:Create(newSecurityPrompt.FoundLink, TweenInfo.new(0.5, Enum.EasingStyle.Quint),  {TextTransparency = 0.2}):Play()
+	end)
+
+	-- Touch fallback: on phones/tablets MouseEnter never fires so the
+	-- truncated domain would be the only thing the user ever sees.
+	-- Show the full link by default on touch devices so they can
+	-- verify it before accepting/rejecting.
+	pcall(function()
+		if siriusValues.responsive and siriusValues.responsive.isTouch and siriusValues.responsive.isTouch() then
+			newSecurityPrompt.FoundLink.Text = link
+			newSecurityPrompt.FoundLink.TextTransparency = 0.2
+		end
 	end)
 
 	repeat task.wait() until decision ~= nil or not newSecurityPrompt.Parent
@@ -23988,7 +23809,7 @@ function searchScripts(query)
 		scriptSearch.List.Position = scriptSaveState.listPosition
 		scriptSearch.List.Size = scriptSaveState.listSize
 		scriptSearch.List.Visible = true
-		tweenService:Create(scriptSearch, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Size = siriusValues.fitSize(580, 529)}):Play()
+		tweenService:Create(scriptSearch, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Size = UDim2.new(0, 580, 0, 529)}):Play()
 		tweenService:Create(scriptSearch.Icon, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Position = UDim2.new(0.054, 0, 0.056, 0)}):Play()
 		tweenService:Create(scriptSearch.SearchBox, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Position = UDim2.new(0.523, 0, 0.056, 0)}):Play()
 		tweenService:Create(scriptSearch.List, TweenInfo.new(.45,Enum.EasingStyle.Quint),  {Position = scriptSaveState.listPosition, Size = scriptSaveState.listSize}):Play()
@@ -24180,22 +24001,37 @@ function siriusValues.getSiriusViewportSize()
 	return viewport
 end
 
+-- Design-space viewport: the size panels can fill BEFORE the root
+-- UIScale shrinks them. Falls back to raw viewport if responsive
+-- isn't initialised yet (shouldn't happen at runtime, but safe).
+function siriusValues.getDesignViewport()
+	local r = siriusValues.responsive
+	if r and r.designViewport then return r.designViewport() end
+	return siriusValues.getSiriusViewportSize()
+end
+
+-- Y offset proxies (pass-through on desktop, shift dock up on
+-- phone/tablet so it clears the device gesture bar / chat strip).
+function siriusValues.bottomY(designOffset)
+	local r = siriusValues.responsive
+	if r and r.bottomInset then return designOffset - r.bottomInset() end
+	return designOffset
+end
+function siriusValues.topY(designOffset)
+	local r = siriusValues.responsive
+	if r and r.topInset then return designOffset + r.topInset() end
+	return designOffset
+end
+
 function siriusValues.getResponsiveSmartBarSize(open)
 	local width = open and 581 or 531
 	local height = open and 70 or 64
 	if siriusValues.betaControl and siriusValues.betaControl.adminEnabled then
 		width += open and 76 or 62
 	end
-	local viewport = siriusValues.getSiriusViewportSize()
+	local viewport = siriusValues.getDesignViewport()
 	width = math.min(width, math.max(336, viewport.X - 24))
 	return UDim2.new(0, width, 0, height)
-end
-
--- Pass-through: keep the exact PC Y offset everywhere. The auto-scale
--- already shrinks the whole UI to fit smaller screens so the bottom
--- edge stays inside the viewport without us shifting it manually.
-function siriusValues.bottomY(designOffset)
-	return designOffset
 end
 
 local function cancelSmartBarOptionTweens(button)
@@ -24229,7 +24065,7 @@ local function openSmartBar()
 	smartBarAnimationId = smartBarAnimationId + 1
 	local animationId = smartBarAnimationId
 
-	coreGui.RobloxGui.Backpack.Position = UDim2.new(0,0,0,0)
+	pcall(function() coreGui.RobloxGui.Backpack.Position = UDim2.new(0,0,0,0) end)
 
 	-- Set Values for frame properties
 	smartBar.BackgroundTransparency = 1
@@ -24246,7 +24082,7 @@ local function openSmartBar()
 	toggle.Visible = not checkSetting("Hide Toggle Button").current
 
 	if checkTools() then
-		toggle.Position = UDim2.new(0.5,0,1,siriusValues.bottomY(-68))
+		toggle.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-68))
 	else
 		toggle.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-5))
 	end
@@ -24262,7 +24098,7 @@ local function openSmartBar()
 		applySharpIcon(button.Icon, 1)
 	end
 
-	tweenService:Create(coreGui.RobloxGui.Backpack, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Position = UDim2.new(-0.325,0,0,0)}):Play()
+	pcall(function() tweenService:Create(coreGui.RobloxGui.Backpack, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Position = UDim2.new(-0.325,0,0,0)}):Play() end)
 
 	tweenService:Create(toggle, TweenInfo.new(0.82, Enum.EasingStyle.Quint), {Rotation = 0}):Play()
 	tweenService:Create(smartBar, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-12))}):Play()
@@ -24295,7 +24131,7 @@ local function closeSmartBar()
 	smartBarAnimationId = smartBarAnimationId + 1
 	local animationId = smartBarAnimationId
 
-	for _, otherPanel in ipairs(UI:GetChildren()) do
+	for _, otherPanel in ipairs((siriusValues.responsive.root or UI):GetChildren()) do
 		if smartBar.Buttons:FindFirstChild(otherPanel.Name) then
 			if isPanel(otherPanel.Name) and otherPanel.Visible then
 				task.spawn(closePanel, otherPanel.Name, true)
@@ -24317,7 +24153,7 @@ local function closeSmartBar()
 		end)
 	end
 
-	tweenService:Create(coreGui.RobloxGui.Backpack, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Position = UDim2.new(0, 0, 0, 0)}):Play()
+	pcall(function() tweenService:Create(coreGui.RobloxGui.Backpack, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Position = UDim2.new(0, 0, 0, 0)}):Play() end)
 
 	tweenService:Create(smartBar, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {BackgroundTransparency = 1}):Play()
 	tweenService:Create(smartBar.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Transparency = 1}):Play()
@@ -24327,7 +24163,7 @@ local function closeSmartBar()
 
 	-- If tools, move the toggle
 	if checkTools() then
-		tweenService:Create(toggle, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5,0,1,siriusValues.bottomY(-68))}):Play()
+		tweenService:Create(toggle, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-68))}):Play()
 		tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-90))}):Play()
 		tweenService:Create(toggle, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Rotation = 180}):Play()
 	else
@@ -24982,7 +24818,7 @@ local function openSettings()
 			settingsPanel.SettingTypes.ScrollBarImageTransparency = 1
 		end
 		refreshSettingsCategoryScroll()
-		settingsPanel.Size = siriusValues.fitSize(552, 346)
+		settingsPanel.Size = UDim2.new(0, 552, 0, 346)
 		settingsPanel.Title.Position = UDim2.new(0.045, 0, 0.057, 0)
 
 	settingsPanel.Title.Text = "Settings"
@@ -24993,7 +24829,7 @@ local function openSettings()
 	local contentTween = TweenInfo.new(0.34, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 	local cardTween = TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 
-	tweenService:Create(settingsPanel, panelOpenTween, {Size = siriusValues.fitSize(613, 384)}):Play()
+	tweenService:Create(settingsPanel, panelOpenTween, {Size = UDim2.new(0, 613, 0, 384)}):Play()
 	tweenService:Create(settingsPanel, panelFadeTween, {BackgroundTransparency = 0}):Play()
 	tweenService:Create(settingsPanel.UIGradient, TweenInfo.new(0.58, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Offset = Vector2.new(0, 1.05)}):Play()
 	tweenService:Create(settingsPanel.Shadow, panelOpenTween, {ImageTransparency = 0.66}):Play()
@@ -25083,7 +24919,7 @@ local function closeSettings()
 		end
 	end
 
-	tweenService:Create(settingsPanel, panelCloseTween, {Size = siriusValues.fitSize(584, 18)}):Play()
+	tweenService:Create(settingsPanel, panelCloseTween, {Size = UDim2.new(0, 584, 0, 18)}):Play()
 	tweenService:Create(settingsPanel, panelFadeTween, {BackgroundTransparency = 1}):Play()
 
 	task.wait(0.3)
@@ -26406,7 +26242,7 @@ siriusValues.runKeybindAction = function(actionName)
 
 	if actionName == "character" or actionName == "scripts" or actionName == "players" then
 		local panelName = actionName == "character" and "Character" or actionName == "scripts" and "Scripts" or "Playerlist"
-		local panel = UI:FindFirstChild(panelName)
+		local panel = (siriusValues.responsive.root or UI):FindFirstChild(panelName)
 		if panel and panel.Visible then
 			task.spawn(closePanel, panelName)
 		else
@@ -26442,7 +26278,7 @@ siriusValues.runKeybindAction = function(actionName)
 		end
 
 		for _, panelName in ipairs({"Character", "Scripts", "Playerlist"}) do
-			local panel = UI:FindFirstChild(panelName)
+			local panel = (siriusValues.responsive.root or UI):FindFirstChild(panelName)
 			if panel and panel.Visible then
 				task.spawn(closePanel, panelName)
 				closed = true
@@ -26772,14 +26608,34 @@ toggle.MouseButton1Click:Connect(function()
 	end
 end)
 
-if siriusValues.toggleHitbox then
-	siriusValues.toggleHitbox.MouseButton1Click:Connect(function()
-		if smartBarOpen then
-			closeSmartBar()
-		else
-			openSmartBar()
-		end
+-- Finger-sized invisible hitbox over the chevron. Visual size of the
+-- toggle stays exactly as-authored (PC look preserved); the hitbox
+-- only expands the TAP area so phones can reliably hit it. Only
+-- added on touch devices to avoid changing mouse-cursor behaviour.
+do
+	pcall(function()
+		toggle.Active = true
+		toggle.Selectable = true
+		toggle.ZIndex = math.max(toggle.ZIndex or 1, 950)
 	end)
+	if siriusValues.responsive and siriusValues.responsive.isTouch and siriusValues.responsive.isTouch()
+		and not toggle:FindFirstChild("__SiriusToggleHitbox") then
+		local hb = Instance.new("TextButton")
+		hb.Name = "__SiriusToggleHitbox"
+		hb.BackgroundTransparency = 1
+		hb.Text = ""
+		hb.AutoButtonColor = false
+		hb.AnchorPoint = Vector2.new(0.5, 0.5)
+		hb.Position = UDim2.new(0.5, 0, 0.5, 0)
+		hb.Size = UDim2.new(2.0, 24, 2.0, 24)
+		hb.ZIndex = (toggle.ZIndex or 950) + 1
+		hb.Active = true
+		hb.Selectable = true
+		hb.Parent = toggle
+		hb.MouseButton1Click:Connect(function()
+			if smartBarOpen then closeSmartBar() else openSmartBar() end
+		end)
+	end
 end
 
 characterPanel.Interactions.Reset.MouseButton1Click:Connect(function()
@@ -27009,7 +26865,7 @@ local function playSmartBarDecline(button)
 end
 
 for _, button in ipairs(smartBar.Buttons:GetChildren()) do
-	if UI:FindFirstChild(button.Name) and button:FindFirstChild("Interact") then
+	if (siriusValues.responsive.root or UI):FindFirstChild(button.Name) and button:FindFirstChild("Interact") then
 		button.Interact.MouseButton1Click:Connect(function()
 			if button.Name == "Playerlist" and playerActionSystem.isPickerOpen and playerActionSystem.isPickerOpen() then
 				playSmartBarDecline(button)
@@ -27018,7 +26874,7 @@ for _, button in ipairs(smartBar.Buttons:GetChildren()) do
 			end
 
 			if isPanel(button.Name) then
-				if not debounce and UI:FindFirstChild(button.Name).Visible then
+				if not debounce and (siriusValues.responsive.root or UI):FindFirstChild(button.Name).Visible then
 					task.spawn(closePanel, button.Name)
 				else
 					task.spawn(openPanel, button.Name)
@@ -27219,6 +27075,11 @@ userInputService.InputEnded:Connect(function(input, processed)
 end)
 
 camera:GetPropertyChangedSignal('ViewportSize'):Connect(function()
+	-- Fire updateSliderPadding immediately so orientation flips don't
+	-- leave sliders mis-padded for half a second; the smartBar re-fit
+	-- still runs after the short delay so the open-state animation has
+	-- a stable frame to settle into before resizing.
+	updateSliderPadding()
 	task.wait(.5)
 	updateSliderPadding()
 	if smartBarOpen then
@@ -27228,6 +27089,37 @@ camera:GetPropertyChangedSignal('ViewportSize'):Connect(function()
 		end
 	end
 end)
+
+-- Mirror the smartBar resize on every responsive recompute (catches
+-- UI.AbsoluteSize changes, orientation flips, mouse->touch swaps that
+-- the camera.ViewportSize signal alone may miss). Also refire the
+-- bottom-anchored toggle/toasts in their resting open pose so the
+-- bottomY() inset stays accurate after rotation.
+if siriusValues.responsive and siriusValues.responsive.onChange and not siriusValues._smartBarResponsiveBound then
+	siriusValues._smartBarResponsiveBound = true
+	siriusValues.responsive.onChange(function()
+		pcall(function()
+			if smartBarOpen then
+				smartBar.Size = siriusValues.getResponsiveSmartBarSize(true)
+				smartBar.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-12))
+				toggle.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-85))
+				toastsContainer.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-110))
+				if siriusValues.syncSmartBarCommandSearchLayout then
+					siriusValues.syncSmartBarCommandSearchLayout()
+				end
+			else
+				smartBar.Size = siriusValues.getResponsiveSmartBarSize(false)
+				if checkTools() then
+					toggle.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-68))
+					toastsContainer.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-90))
+				else
+					toggle.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-5))
+					toastsContainer.Position = UDim2.new(0.5, 0, 1, siriusValues.bottomY(-28))
+				end
+			end
+		end)
+	end)
+end
 
 scriptSearch.SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
 	if scriptSearch.Visible and not scriptSaveState.savedMode then
@@ -27835,6 +27727,23 @@ while task.wait(1) do
 
 			promptedDisconnected = true
 			disconnectedPrompt.Parent = coreGui.RobloxPromptGui
+			-- disconnectedPrompt now lives outside our wrapper UIScale,
+			-- so give it a sibling UIScale driven by the same scale value
+			-- so it shrinks identically on phones/tablets.
+			pcall(function()
+				local existing = disconnectedPrompt:FindFirstChild("__SiriusPromptScale")
+				if not existing then
+					local promptScale = Instance.new("UIScale")
+					promptScale.Name = "__SiriusPromptScale"
+					promptScale.Scale = (siriusValues.responsive and siriusValues.responsive.scale) or 1
+					promptScale.Parent = disconnectedPrompt
+					if siriusValues.responsive then
+						siriusValues.responsive.promptScale = promptScale
+					end
+				else
+					existing.Scale = (siriusValues.responsive and siriusValues.responsive.scale) or 1
+				end
+			end)
 			disconnectedPrompt.ZIndex = 10000
 			for _, promptObject in ipairs(disconnectedPrompt:GetDescendants()) do
 				pcall(function()
