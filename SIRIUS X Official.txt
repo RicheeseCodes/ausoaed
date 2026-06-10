@@ -8761,7 +8761,7 @@ local function figureNotifications()
 				else
 					notificationsSize += notification.Size.Y.Offset + 5
 				end
-				local desiredPosition = UDim2.new(0.5, 0, 0, siriusValues.topY(notificationsSize))
+				local desiredPosition = UDim2.new(1, -2, 0, siriusValues.topY(notificationsSize))
 				if notification.Position ~= desiredPosition then
 					notification:TweenPosition(desiredPosition, "Out", "Quint", 0.8, true)
 				end
@@ -8800,8 +8800,9 @@ do
 		if touch then
 			local top = (r.topInset and r.topInset()) or 0
 			nc.AnchorPoint = Vector2.new(1, 0)
-			nc.Position = UDim2.new(1, -10, 0, top + 10)
-			nc.Size = UDim2.new(0, 330, 1, -(top + 20))
+			-- Hug the very top-right corner (small 4px margin).
+			nc.Position = UDim2.new(1, -4, 0, top + 6)
+			nc.Size = UDim2.new(0, 332, 1, -(top + 12))
 			if not sc then
 				sc = Instance.new("UIScale")
 				sc.Name = "__SiriusNotifScale"
@@ -8839,8 +8840,8 @@ local function queueNotification(Title, Description, Image)
 			newNotification.Time.Text = "now"
 
 			-- Prepare for animation
-			newNotification.AnchorPoint = Vector2.new(0.5, 1)
-			newNotification.Position = UDim2.new(0.5, 0, -1, 0)
+			newNotification.AnchorPoint = Vector2.new(1, 1)
+			newNotification.Position = UDim2.new(1, -2, -1, 0)
 			newNotification.Size = UDim2.new(0, 320, 0, 500)
 			newNotification.Description.Size = UDim2.new(0, 241, 0, 400)
 			-- Make sure the body wraps so long messages measure their
@@ -8893,7 +8894,7 @@ local function queueNotification(Title, Description, Image)
 				newNotification.Icon.Image = 'rbxassetid://'..Image or 0
 			end
 
-			newNotification:TweenPosition(UDim2.new(0.5, 0, 0, siriusValues.topY(newNotification.Size.Y.Offset + 2)), "Out", "Quint", 0.9, true)
+			newNotification:TweenPosition(UDim2.new(1, -2, 0, siriusValues.topY(newNotification.Size.Y.Offset + 2)), "Out", "Quint", 0.9, true)
 			task.wait(0.1)
 			tweenService:Create(newNotification, TweenInfo.new(0.8, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 320, 0, descHeight + 50)}):Play()
 			task.wait(0.05)
@@ -21373,6 +21374,23 @@ local function openScriptSearch()
 	scriptSearch.NoScriptsDesc.TextTransparency = 1
 	scriptSearch.Visible = true
 
+	-- Blur the game behind the search and lift the whole panel above
+	-- the smart bar so it reads clearly and isn't clipped by the dock.
+	pcall(function()
+		local b = lighting:FindFirstChild("SiriusScriptSearchBlur")
+		if not b then
+			b = Instance.new("BlurEffect")
+			b.Name = "SiriusScriptSearchBlur"
+			b.Size = 0
+			b.Parent = lighting
+		end
+		tweenService:Create(b, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = 16}):Play()
+		if not scriptSearch:GetAttribute("__SiriusOrigZ") then
+			scriptSearch:SetAttribute("__SiriusOrigZ", scriptSearch.ZIndex)
+		end
+		scriptSearch.ZIndex = 5000
+	end)
+
 	wipeTransparency(scriptSearch, 1, true)
 	scriptSaveState.setBookmarkVisual(scriptSaveState.topButton.BookmarkVisual, false, true)
 
@@ -21450,6 +21468,16 @@ local function closeScriptSearch()
 	end
 	scriptSearch.BackgroundColor3 = Color3.fromRGB(255 ,255, 255)
 	scriptSearch.Visible = false
+	-- Remove the search blur and restore the panel's original z-order.
+	pcall(function()
+		local b = lighting:FindFirstChild("SiriusScriptSearchBlur")
+		if b then
+			tweenService:Create(b, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {Size = 0}):Play()
+			task.delay(0.4, function() if b and b.Parent then b:Destroy() end end)
+		end
+		local oz = scriptSearch:GetAttribute("__SiriusOrigZ")
+		if oz then scriptSearch.ZIndex = oz end
+	end)
 	scriptSearch.UIGradient.Enabled = true
 	scriptSaveState.savedMode = false
 	if scriptSaveState.topButton then scriptSaveState.topButton.Visible = false end
@@ -26874,14 +26902,22 @@ do
 		local dx = math.clamp(raw.X, math.min(minDX, maxDX), math.max(minDX, maxDX))
 		local dy = math.clamp(raw.Y, math.min(minDY, maxDY), math.max(minDY, maxDY))
 
-		-- Persist as the cluster offset so re-docks stay attached.
-		siriusValues.dockOffset = Vector2.new(d.startOffset.X + dx, d.startOffset.Y + dy)
+		-- The cluster may only move UP from its default bottom dock
+		-- (offset.Y <= 0). Dragging below default is pointless and would
+		-- push the toggle off the bottom when the bar closes, hiding the
+		-- whole UI. So clamp the resulting vertical offset to <= 0 and
+		-- derive the actual applied delta from the clamped offset.
+		local newOffX = d.startOffset.X + dx
+		local newOffY = math.min(d.startOffset.Y + dy, 0)
+		siriusValues.dockOffset = Vector2.new(newOffX, newOffY)
+		local appliedDx = newOffX - d.startOffset.X
+		local appliedDy = newOffY - d.startOffset.Y
 
 		-- Move bar + toggle + open panel together by the clamped delta.
-		smartBar.Position = siriusValues._dragOffsetUDim(d.startBar, dx, dy)
-		toggle.Position   = siriusValues._dragOffsetUDim(d.startToggle, dx, dy)
+		smartBar.Position = siriusValues._dragOffsetUDim(d.startBar, appliedDx, appliedDy)
+		toggle.Position   = siriusValues._dragOffsetUDim(d.startToggle, appliedDx, appliedDy)
 		if d.panel and d.startPanel then
-			d.panel.Position = siriusValues._dragOffsetUDim(d.startPanel, dx, dy)
+			d.panel.Position = siriusValues._dragOffsetUDim(d.startPanel, appliedDx, appliedDy)
 		end
 	end)
 
