@@ -21171,6 +21171,24 @@ local function openHome()
 	debounce = true
 	homeContainer.Visible = true
 
+	-- The home blur backdrop (homeContainer) is full-screen and isn't
+	-- scaled, so its fixed-size cards overflow on mobile. Scale the
+	-- Interactions holder (which holds the cards) instead, pivoting from
+	-- centre so the grid shrinks to fit and stays centred.
+	pcall(function()
+		local inter = homeContainer.Interactions
+		inter.AnchorPoint = Vector2.new(0.5, 0.5)
+		inter.Position = UDim2.new(0.5, 0, 0.5, 0)
+		local sc = inter:FindFirstChild("__SiriusHomeScale")
+		if not sc then
+			sc = Instance.new("UIScale")
+			sc.Name = "__SiriusHomeScale"
+			sc.Parent = inter
+		end
+		local r = siriusValues.responsive
+		sc.Scale = (r and r.scale) or 1
+	end)
+
 	local homeBlur = Instance.new("BlurEffect", lighting)
 	homeBlur.Size = 0
 	homeBlur.Name = "HomeBlur"
