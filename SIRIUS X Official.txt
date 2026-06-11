@@ -10633,9 +10633,9 @@ do
 			selectedEsp = false,
 			restorePanel = nil
 		}
-	local playerActionPickerDefaultSize = Vector2.new(390, 520)
-	local playerActionPickerMinSize = Vector2.new(360, 360)
-	local playerActionPickerMaxSize = Vector2.new(440, 540)
+	local playerActionPickerDefaultSize = Vector2.new(330, 432)
+	local playerActionPickerMinSize = Vector2.new(290, 300)
+	local playerActionPickerMaxSize = Vector2.new(380, 480)
 	local playerActionPickerCurrentSize = playerActionPickerDefaultSize
 	siriusValues.selectActionStyle = {
 		panel = Color3.fromRGB(18, 18, 18),
@@ -24676,6 +24676,41 @@ local function createPlayer(player)
 	local selectAction
 	local clearPlayerActions
 	local preservingSelectedAction = false
+
+	-- Open the Select Action picker for this player. Shared by the
+	-- "Select" button (desktop hover flow) and the direct one-tap path
+	-- on touch (where the hover-reveal Select button gets hidden by the
+	-- finger-up MouseLeave before it can be tapped).
+	local function doSelectPlayer()
+		if debounce or not playerlistPanel.Visible then return end
+		if not (playerActionSystem and playerActionSystem.openPicker) then return end
+		if player == localPlayer then return end
+		preservingSelectedAction = true
+		local anchorObj = (selectAction and selectAction.Parent) and selectAction or newPlayer
+		local sourceSnapshot = {
+			AbsolutePosition = anchorObj.AbsolutePosition,
+			AbsoluteSize = anchorObj.AbsoluteSize
+		}
+		task.spawn(function()
+			tweenService:Create(toggle, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.dockUDim(-85)}):Play()
+			closePanel("Playerlist", true)
+			preservingSelectedAction = false
+			if clearPlayerActions then clearPlayerActions() end
+			newPlayer.Size = UDim2.new(0, 539, 0, 45)
+			newPlayer.DisplayName.Position = UDim2.new(0, 53, 0.5, 0)
+			newPlayer.Avatar.Size = UDim2.new(0, 30, 0, 30)
+			newPlayer.Role.TextTransparency = 1
+
+			if not players:FindFirstChild(player.Name) then return end
+
+			playerActionSystem.openPicker(player, sourceSnapshot, function()
+				if not checkSirius() then return end
+				if not smartBarOpen or playerlistPanel.Visible or debounce then return end
+				task.spawn(openPanel, "Playerlist")
+			end)
+		end)
+	end
+
 	local function prepareActionSlot()
 		local actionParent = newPlayer.PlayerInteractions
 
@@ -24761,35 +24796,7 @@ local function createPlayer(player)
 			tweenService:Create(stroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint), {Color = Color3.fromRGB(58, 58, 58)}):Play()
 		end)
 
-		selectAction.MouseButton1Click:Connect(function()
-			if debounce or not playerlistPanel.Visible then return end
-			if playerActionSystem.openPicker then
-				preservingSelectedAction = true
-				local sourceSnapshot = {
-					AbsolutePosition = selectAction.AbsolutePosition,
-					AbsoluteSize = selectAction.AbsoluteSize
-				}
-
-				task.spawn(function()
-					tweenService:Create(toggle, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.dockUDim(-85)}):Play()
-					closePanel("Playerlist", true)
-					preservingSelectedAction = false
-					clearPlayerActions()
-					newPlayer.Size = UDim2.new(0, 539, 0, 45)
-					newPlayer.DisplayName.Position = UDim2.new(0, 53, 0.5, 0)
-					newPlayer.Avatar.Size = UDim2.new(0, 30, 0, 30)
-					newPlayer.Role.TextTransparency = 1
-
-					if not players:FindFirstChild(player.Name) then return end
-
-					playerActionSystem.openPicker(player, sourceSnapshot, function()
-						if not checkSirius() then return end
-						if not smartBarOpen or playerlistPanel.Visible or debounce then return end
-						task.spawn(openPanel, "Playerlist")
-					end)
-				end)
-			end
-		end)
+		selectAction.MouseButton1Click:Connect(doSelectPlayer)
 
 		return selectAction
 	end
@@ -24882,7 +24889,16 @@ local function createPlayer(player)
 			tweenService:Create(newPlayer.DisplayName, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0, 73, 0.5, 0)}):Play()
 		end
 
-		if player ~= localPlayer then openInteractions() end
+		if player ~= localPlayer then
+			-- On touch there is no hover, so the "Select" button would be
+			-- hidden by the finger-up MouseLeave before it can be tapped.
+			-- Open the picker directly on the first tap instead.
+			if siriusValues.responsive and siriusValues.responsive.isTouch and siriusValues.responsive.isTouch() then
+				doSelectPlayer()
+			else
+				openInteractions()
+			end
+		end
 
 		tweenService:Create(newPlayer, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Size = UDim2.new(0, 539, 0, 75)}):Play()
 
