@@ -21374,21 +21374,22 @@ local function openScriptSearch()
 	scriptSearch.NoScriptsDesc.TextTransparency = 1
 	scriptSearch.Visible = true
 
-	-- Blur the game behind the search and lift the whole panel above
-	-- the smart bar so it reads clearly and isn't clipped by the dock.
+	-- Blur the game behind the search, and hide the smart bar + toggle
+	-- so the search panel reads clearly above the dock (the asset uses
+	-- Global z-index, so we can't just raise the panel ‚Äî we get it out
+	-- of the way instead). All restored on close.
 	pcall(function()
 		local b = lighting:FindFirstChild("SiriusScriptSearchBlur")
 		if not b then
 			b = Instance.new("BlurEffect")
 			b.Name = "SiriusScriptSearchBlur"
-			b.Size = 0
 			b.Parent = lighting
 		end
-		tweenService:Create(b, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = 16}):Play()
-		if not scriptSearch:GetAttribute("__SiriusOrigZ") then
-			scriptSearch:SetAttribute("__SiriusOrigZ", scriptSearch.ZIndex)
-		end
-		scriptSearch.ZIndex = 5000
+		b.Enabled = true
+		b.Size = 4
+		tweenService:Create(b, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = 24}):Play()
+		smartBar.Visible = false
+		toggle.Visible = false
 	end)
 
 	wipeTransparency(scriptSearch, 1, true)
@@ -21468,15 +21469,15 @@ local function closeScriptSearch()
 	end
 	scriptSearch.BackgroundColor3 = Color3.fromRGB(255 ,255, 255)
 	scriptSearch.Visible = false
-	-- Remove the search blur and restore the panel's original z-order.
+	-- Remove the search blur and restore the smart bar + toggle.
 	pcall(function()
 		local b = lighting:FindFirstChild("SiriusScriptSearchBlur")
 		if b then
 			tweenService:Create(b, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {Size = 0}):Play()
 			task.delay(0.4, function() if b and b.Parent then b:Destroy() end end)
 		end
-		local oz = scriptSearch:GetAttribute("__SiriusOrigZ")
-		if oz then scriptSearch.ZIndex = oz end
+		smartBar.Visible = true
+		toggle.Visible = not checkSetting("Hide Toggle Button").current
 	end)
 	scriptSearch.UIGradient.Enabled = true
 	scriptSaveState.savedMode = false
@@ -25007,6 +25008,23 @@ local function openSettings()
 		wipeTransparency(settingsPanel.SettingTypes, 1, true)
 
 		settingsPanel.Visible = true
+
+	-- Blur the game behind Settings and hide the smart bar + toggle so
+	-- it reads clearly above the dock (same treatment as ScriptSearch).
+	pcall(function()
+		local b = lighting:FindFirstChild("SiriusSettingsBlur")
+		if not b then
+			b = Instance.new("BlurEffect")
+			b.Name = "SiriusSettingsBlur"
+			b.Parent = lighting
+		end
+		b.Enabled = true
+		b.Size = 4
+		tweenService:Create(b, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = 22}):Play()
+		smartBar.Visible = false
+		toggle.Visible = false
+	end)
+
 	settingsPanel.UIGradient.Enabled = true
 	settingsPanel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 		settingsPanel.UIGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.new(0.0470588, 0.0470588, 0.0470588)),ColorSequenceKeypoint.new(1, Color3.new(0.0470588, 0.0470588, 0.0470588))})
@@ -25140,6 +25158,16 @@ local function closeSettings()
 		dylanfocBackground.Visible = false
 	end
 	settingsPanel.Visible = false
+	-- Remove the Settings blur and restore the smart bar + toggle.
+	pcall(function()
+		local b = lighting:FindFirstChild("SiriusSettingsBlur")
+		if b then
+			tweenService:Create(b, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {Size = 0}):Play()
+			task.delay(0.4, function() if b and b.Parent then b:Destroy() end end)
+		end
+		smartBar.Visible = true
+		toggle.Visible = not checkSetting("Hide Toggle Button").current
+	end)
 	debounce = false
 end
 
@@ -27119,15 +27147,18 @@ for _, button in ipairs(scriptsPanel.Interactions.Selection:GetChildren()) do
 end
 
 -- Tap anywhere outside Sirius (the game world / empty space) to close
--- ScriptSearch. gameProcessed is true when the tap landed on a GUI
--- element (the search box, smartBar, etc), so those don't close it ‚Äî
--- only taps that fall through to the game do.
+-- ScriptSearch or Settings. gameProcessed is true when the tap landed
+-- on a GUI element (the panel itself, a setting control, etc), so
+-- those don't close it ‚Äî only taps that fall through to the game do.
 userInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
-	if not scriptSearch.Visible then return end
-	if debounce or scriptSaveState.runPromptActive then return end
 	if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then return end
-	task.spawn(closeScriptSearch)
+	if debounce then return end
+	if scriptSearch.Visible and not scriptSaveState.runPromptActive then
+		task.spawn(closeScriptSearch)
+	elseif settingsPanel.Visible then
+		task.spawn(closeSettings)
+	end
 end)
 
 smartBar.Buttons.Music.Interact.MouseButton1Click:Connect(function()
