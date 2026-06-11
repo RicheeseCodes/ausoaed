@@ -11444,10 +11444,10 @@ local function ensureSpectateBar()
 		close.BackgroundColor3 = Color3.fromRGB(16, 19, 21)
 			close.BackgroundTransparency = 0.48
 	close.BorderSizePixel = 0
-		close.Text = "‚úï"
+		close.Text = "√ó"
 		close.TextColor3 = Color3.fromRGB(255, 255, 255)
 		close.TextTransparency = 0
-			close.TextSize = 19
+			close.TextSize = 24
 	close.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
 	close.ZIndex = 76
 	close.Parent = spectateBar
@@ -13640,11 +13640,11 @@ local function ensurePlayerActionPicker()
 		close.BackgroundColor3 = Color3.fromRGB(46, 46, 46)
 		close.BackgroundTransparency = 0.35
 		close.BorderSizePixel = 0
-		close.Text = "‚úï"
+		close.Text = "√ó"
 		close.TextColor3 = Color3.fromRGB(255, 255, 255)
 		close.TextTransparency = 0
 		close.TextScaled = false
-		close.TextSize = 20
+		close.TextSize = 26
 		close.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
 		close.AutoButtonColor = false
 		close.ZIndex = 82
@@ -15767,33 +15767,23 @@ local function ensurePlayerActionPicker()
 	close.Name = "Button"
 	close.AnchorPoint = Vector2.new(0.5, 0.5)
 	close.Position = UDim2.new(0.5, 0, 0.5, 0)
-	close.Size = UDim2.new(0, 32, 0, 32)
+	close.Size = UDim2.new(0, 24, 0, 24)
 	close.BackgroundColor3 = Color3.fromRGB(46, 46, 46)
-	close.BackgroundTransparency = 0.3
+	close.BackgroundTransparency = 0.32
 	close.BorderSizePixel = 0
 	close.AutoButtonColor = false
-	close.Image = ""
+	-- The PC cross icon (small), drawn in white so it's clearly visible
+	-- over the dark circle. (A "‚úï" text glyph isn't in the GothamSSm
+	-- font and renders as garbage, so use the image like PC does.)
+	close.Image = "rbxassetid://10747384394"
+	close.ImageColor3 = Color3.fromRGB(255, 255, 255)
+	close.ImageTransparency = 0
 	close.ZIndex = 100001
 	close.Parent = closePill
 
 	local closeCorner = Instance.new("UICorner")
 	closeCorner.CornerRadius = UDim.new(1, 0)
 	closeCorner.Parent = close
-
-	-- Clear ‚úï cross over the circle so the close button is obviously
-	-- visible (the old faint X image was hard to see).
-	local closeX = Instance.new("TextLabel")
-	closeX.Name = "X"
-	closeX.AnchorPoint = Vector2.new(0.5, 0.5)
-	closeX.Position = UDim2.new(0.5, 0, 0.5, 0)
-	closeX.Size = UDim2.new(1, 0, 1, 0)
-	closeX.BackgroundTransparency = 1
-	closeX.Text = "‚úï"
-	closeX.TextColor3 = Color3.fromRGB(255, 255, 255)
-	closeX.TextSize = 18
-	closeX.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
-	closeX.ZIndex = 100002
-	closeX.Parent = close
 
 	local resizeHandle = Instance.new("ImageButton")
 	resizeHandle.Name = "Resize"
@@ -21195,22 +21185,12 @@ local function openHome()
 	debounce = true
 	homeContainer.Visible = true
 
-	-- Scale the home cards to fit smaller screens. homeContainer is a
-	-- full-screen blur backdrop (not scaled); its Interactions holder
-	-- holds the cards, so a UIScale there shrinks the cards together
-	-- WITHOUT moving the holder (no anchor/position change ‚Äî that broke
-	-- the layout). Cards stay where the asset places them, just smaller.
-	pcall(function()
-		local inter = homeContainer.Interactions
-		local sc = inter:FindFirstChild("__SiriusHomeScale")
-		if not sc then
-			sc = Instance.new("UIScale")
-			sc.Name = "__SiriusHomeScale"
-			sc.Parent = inter
-		end
-		local r = siriusValues.responsive
-		-- only shrink on smaller screens; never enlarge
-		sc.Scale = math.min((r and r.scale) or 1, 1)
+	-- Safety net: if anything below errors before the normal early
+	-- release, don't leave every section blocked. Only clears the lock
+	-- if Home is still the thing on screen (so it can't unlock another
+	-- section mid-animation).
+	task.delay(1.6, function()
+		if debounce and homeContainer.Visible then debounce = false end
 	end)
 
 	local homeBlur = Instance.new("BlurEffect", lighting)
@@ -21441,6 +21421,7 @@ local function openScriptSearch()
 		b.Enabled = true
 		b.Size = 4
 		tweenService:Create(b, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = 24}):Play()
+		siriusValues.hideToggleOverride = true
 		smartBar.Visible = false
 		toggle.Visible = false
 	end)
@@ -21529,6 +21510,7 @@ local function closeScriptSearch()
 			tweenService:Create(b, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {Size = 0}):Play()
 			task.delay(0.4, function() if b and b.Parent then b:Destroy() end end)
 		end
+		siriusValues.hideToggleOverride = false
 		smartBar.Visible = true
 		toggle.Visible = not checkSetting("Hide Toggle Button").current
 	end)
@@ -25112,6 +25094,7 @@ local function openSettings()
 		b.Enabled = true
 		b.Size = 4
 		tweenService:Create(b, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = 22}):Play()
+		siriusValues.hideToggleOverride = true
 		smartBar.Visible = false
 		toggle.Visible = false
 	end)
@@ -25256,6 +25239,7 @@ local function closeSettings()
 			tweenService:Create(b, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {Size = 0}):Play()
 			task.delay(0.4, function() if b and b.Parent then b:Destroy() end end)
 		end
+		siriusValues.hideToggleOverride = false
 		smartBar.Visible = true
 		toggle.Visible = not checkSetting("Hide Toggle Button").current
 	end)
@@ -27935,6 +27919,29 @@ runService.Stepped:Connect(function()
 	end
 end)
 
+-- Raw camera-relative move vector from the default control module.
+-- Used as a fallback for mobile fly when Humanoid.MoveDirection is 0.
+-- Cached and pcall-guarded (require can fail in some executors).
+function siriusValues.getFlyMoveVector()
+	local ok, mv = pcall(function()
+		local controls = siriusValues._playerControls
+		if not controls or not controls.GetMoveVector then
+			local scripts = localPlayer:FindFirstChild("PlayerScripts")
+			local pm = scripts and scripts:FindFirstChild("PlayerModule")
+			if pm then
+				controls = require(pm):GetControls()
+				siriusValues._playerControls = controls
+			end
+		end
+		if controls and controls.GetMoveVector then
+			return controls:GetMoveVector()
+		end
+		return Vector3.zero
+	end)
+	if ok and typeof(mv) == "Vector3" then return mv end
+	return Vector3.zero
+end
+
 runService.Heartbeat:Connect(function(frame)
 	if not checkSirius() then return end
 
@@ -28006,15 +28013,34 @@ runService.Heartbeat:Connect(function(frame)
 					velocity -= Vector3.yAxis
 				end
 
-				-- Mobile fly: the W/A/S/D keys above never fire on touch,
-				-- so steer with the movement thumbstick (humanoid.MoveDirection)
-				-- and climb/descend by looking up/down while moving.
-				if humanoid and siriusValues.responsive and siriusValues.responsive.isTouch and siriusValues.responsive.isTouch() then
-					local moveDir = humanoid.MoveDirection
-					if moveDir.Magnitude > 0.05 then
-						velocity += moveDir
-						velocity += Vector3.new(0, camCFrame.LookVector.Y * 1.5, 0)
-						rotation *= CFrame.Angles(math.rad(-14), 0, 0)
+				-- Mobile / no-keyboard fly. Gate on "no W/A/S/D held" (NOT
+				-- on device detection, which can misclassify a big phone as
+				-- desktop). On mobile no WASD is ever held, so steer with the
+				-- thumbstick; on PC, WASD uses the keyboard path above.
+				do
+					local anyWASD =
+						userInputService:IsKeyDown(Enum.KeyCode.W) or
+						userInputService:IsKeyDown(Enum.KeyCode.A) or
+						userInputService:IsKeyDown(Enum.KeyCode.S) or
+						userInputService:IsKeyDown(Enum.KeyCode.D)
+					if not anyWASD then
+						-- Primary: Humanoid.MoveDirection ‚Äî world-space, set
+						-- by the thumbstick every frame even while airborne.
+						local moveDir = humanoid and humanoid.MoveDirection or Vector3.zero
+						if moveDir.Magnitude > 0.05 then
+							velocity += moveDir
+							velocity += Vector3.new(0, camCFrame.LookVector.Y * 1.5, 0)
+							rotation *= CFrame.Angles(math.rad(-14), 0, 0)
+						else
+							-- Fallback: camera-relative control move vector
+							-- (X = strafe, -Z = forward), in case MoveDirection
+							-- is zero in this executor's control setup.
+							local mv = siriusValues.getFlyMoveVector and siriusValues.getFlyMoveVector() or Vector3.zero
+							if mv.Magnitude > 0.05 then
+								velocity += camCFrame.LookVector * (-mv.Z) + camCFrame.RightVector * mv.X
+								rotation *= CFrame.Angles(math.rad(-14), 0, 0)
+							end
+						end
 					end
 				end
 
@@ -28191,7 +28217,9 @@ while task.wait(1) do
 		end
 	end
 
-	toggle.Visible = not checkSetting("Hide Toggle Button").current
+	-- Respect the search/settings override so the toggle stays hidden
+	-- while those panels are open (this 1s loop was re-showing it).
+	toggle.Visible = (not checkSetting("Hide Toggle Button").current) and not siriusValues.hideToggleOverride
 
 	-- Disconnected Check
 	local disconnectedRobloxUI = coreGui.RobloxPromptGui.promptOverlay:FindFirstChild("ErrorPrompt")
