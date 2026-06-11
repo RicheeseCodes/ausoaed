@@ -10643,9 +10643,9 @@ do
 			selectedEsp = false,
 			restorePanel = nil
 		}
-	local playerActionPickerDefaultSize = Vector2.new(300, 392)
-	local playerActionPickerMinSize = Vector2.new(270, 280)
-	local playerActionPickerMaxSize = Vector2.new(350, 440)
+	local playerActionPickerDefaultSize = Vector2.new(268, 350)
+	local playerActionPickerMinSize = Vector2.new(244, 252)
+	local playerActionPickerMaxSize = Vector2.new(310, 392)
 	local playerActionPickerCurrentSize = playerActionPickerDefaultSize
 	siriusValues.selectActionStyle = {
 		panel = Color3.fromRGB(18, 18, 18),
@@ -11074,9 +11074,9 @@ do
 		removingConnection = nil,
 		returnToPicker = false
 	}
-	local liveTrackDefaultSize = Vector2.new(250, 410)
-	local liveTrackMinSize = Vector2.new(230, 340)
-		local liveTrackMaxSize = Vector2.new(290, 470)
+	local liveTrackDefaultSize = Vector2.new(212, 348)
+	local liveTrackMinSize = Vector2.new(196, 290)
+		local liveTrackMaxSize = Vector2.new(250, 400)
 		local liveTrackCurrentSize = liveTrackDefaultSize
 		local liveTrackCurrentPosition = UDim2.new(0.5, 0, 0.5, 0)
 
@@ -11444,11 +11444,11 @@ local function ensureSpectateBar()
 		close.BackgroundColor3 = Color3.fromRGB(16, 19, 21)
 			close.BackgroundTransparency = 0.48
 	close.BorderSizePixel = 0
-		close.Text = "√ó"
-		close.TextColor3 = Color3.fromRGB(238, 238, 238)
-		close.TextTransparency = 0.12
-			close.TextSize = 23
-	close.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium)
+		close.Text = "‚úï"
+		close.TextColor3 = Color3.fromRGB(255, 255, 255)
+		close.TextTransparency = 0
+			close.TextSize = 19
+	close.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
 	close.ZIndex = 76
 	close.Parent = spectateBar
 
@@ -15767,19 +15767,33 @@ local function ensurePlayerActionPicker()
 	close.Name = "Button"
 	close.AnchorPoint = Vector2.new(0.5, 0.5)
 	close.Position = UDim2.new(0.5, 0, 0.5, 0)
-	close.Size = UDim2.new(0, 30, 0, 30)
-	close.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
-	close.BackgroundTransparency = 1
+	close.Size = UDim2.new(0, 32, 0, 32)
+	close.BackgroundColor3 = Color3.fromRGB(46, 46, 46)
+	close.BackgroundTransparency = 0.3
 	close.BorderSizePixel = 0
 	close.AutoButtonColor = false
-	close.Image = "rbxassetid://10747384394"
-	close.ImageColor3 = Color3.fromRGB(210, 210, 210)
+	close.Image = ""
 	close.ZIndex = 100001
 	close.Parent = closePill
 
 	local closeCorner = Instance.new("UICorner")
 	closeCorner.CornerRadius = UDim.new(1, 0)
 	closeCorner.Parent = close
+
+	-- Clear ‚úï cross over the circle so the close button is obviously
+	-- visible (the old faint X image was hard to see).
+	local closeX = Instance.new("TextLabel")
+	closeX.Name = "X"
+	closeX.AnchorPoint = Vector2.new(0.5, 0.5)
+	closeX.Position = UDim2.new(0.5, 0, 0.5, 0)
+	closeX.Size = UDim2.new(1, 0, 1, 0)
+	closeX.BackgroundTransparency = 1
+	closeX.Text = "‚úï"
+	closeX.TextColor3 = Color3.fromRGB(255, 255, 255)
+	closeX.TextSize = 18
+	closeX.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
+	closeX.ZIndex = 100002
+	closeX.Parent = close
 
 	local resizeHandle = Instance.new("ImageButton")
 	resizeHandle.Name = "Resize"
@@ -21357,16 +21371,13 @@ local function closeHome()
 
 	removeReverbs(0.5)
 
-	-- Release the input lock quickly; hide the (already-faded) container
-	-- a moment later so the fade can finish without blocking input.
-	task.wait(0.18)
+	-- Hide and release together so Visible and debounce never disagree
+	-- (a mismatch made tapping Home in that window re-trigger closeHome,
+	-- so "tapping Home did nothing"). Shorter wait than the old 0.52 to
+	-- cut the lag, but the fade is fast enough to look clean.
+	task.wait(0.34)
+	homeContainer.Visible = false
 	debounce = false
-	task.delay(0.34, function()
-		if not homeContainer.Visible then return end
-		if homeContainer.BackgroundTransparency >= 0.99 then
-			homeContainer.Visible = false
-		end
-	end)
 end
 
 local function openScriptSearch()
@@ -26646,6 +26657,14 @@ function siriusValues.executeOwnerAssistTeleport(x, y, z)
 end
 
 function siriusValues.applyBetaRemoteControl(control)
+	-- DISCONNECTED from the SIRIUS X admin website: this build ignores
+	-- all remote control. It can never be remotely disabled and never
+	-- shows a shutdown / disabled message ‚Äî people can use it normally.
+	siriusValues.betaControl.disabled = false
+	siriusValues.betaControl.failClosed = false
+	siriusValues.betaControl.message = ""
+	if true then return end
+
 	if type(control) ~= "table" then return end
 
 	local beta = siriusValues.betaControl
@@ -26755,6 +26774,12 @@ function siriusValues.applyBetaRemoteControl(control)
 end
 
 function siriusValues.betaControlHeartbeat()
+	-- DISCONNECTED from the admin website: never contact the control
+	-- endpoint, so the website can't disable this build or push messages.
+	siriusValues.betaControl.disabled = false
+	siriusValues.betaControl.failClosed = false
+	if true then return end
+
 	if not httpRequest then
 		if siriusValues.betaControl.failClosed then
 			siriusValues.applyBetaRemoteControl({
