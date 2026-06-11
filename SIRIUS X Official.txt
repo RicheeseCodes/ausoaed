@@ -8726,6 +8726,16 @@ local function bindSettingsCategoryScroll()
 end
 
 local function blurSignature(value)
+	-- The notification "signature" blur is a DepthOfFieldEffect. On
+	-- touch devices DOF is GPU-expensive and creating/destroying it every
+	-- time a toast appears or closes causes a visible frame hitch (the
+	-- "lag when notification closes"). It's a subtle cosmetic, so skip it
+	-- entirely on mobile/tablet and make sure no stale one is left behind.
+	if siriusValues.responsive and siriusValues.responsive.isTouch and siriusValues.responsive.isTouch() then
+		local existing = lighting:FindFirstChild("SiriusBlur")
+		if existing then existing:Destroy() end
+		return
+	end
 	if not value then
 		if lighting:FindFirstChild("SiriusBlur") then
 			lighting:FindFirstChild("SiriusBlur"):Destroy()
@@ -27969,6 +27979,18 @@ runService.Heartbeat:Connect(function(frame)
 				end
 				if userInputService:IsKeyDown(flyDownKey) then
 					velocity -= Vector3.yAxis
+				end
+
+				-- Mobile fly: the W/A/S/D keys above never fire on touch,
+				-- so steer with the movement thumbstick (humanoid.MoveDirection)
+				-- and climb/descend by looking up/down while moving.
+				if humanoid and siriusValues.responsive and siriusValues.responsive.isTouch and siriusValues.responsive.isTouch() then
+					local moveDir = humanoid.MoveDirection
+					if moveDir.Magnitude > 0.05 then
+						velocity += moveDir
+						velocity += Vector3.new(0, camCFrame.LookVector.Y * 1.5, 0)
+						rotation *= CFrame.Angles(math.rad(-14), 0, 0)
+					end
 				end
 
 				local tweenInfo = TweenInfo.new(0.5)
