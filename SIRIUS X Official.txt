@@ -21171,14 +21171,13 @@ local function openHome()
 	debounce = true
 	homeContainer.Visible = true
 
-	-- The home blur backdrop (homeContainer) is full-screen and isn't
-	-- scaled, so its fixed-size cards overflow on mobile. Scale the
-	-- Interactions holder (which holds the cards) instead, pivoting from
-	-- centre so the grid shrinks to fit and stays centred.
+	-- Scale the home cards to fit smaller screens. homeContainer is a
+	-- full-screen blur backdrop (not scaled); its Interactions holder
+	-- holds the cards, so a UIScale there shrinks the cards together
+	-- WITHOUT moving the holder (no anchor/position change ‚Äî that broke
+	-- the layout). Cards stay where the asset places them, just smaller.
 	pcall(function()
 		local inter = homeContainer.Interactions
-		inter.AnchorPoint = Vector2.new(0.5, 0.5)
-		inter.Position = UDim2.new(0.5, 0, 0.5, 0)
 		local sc = inter:FindFirstChild("__SiriusHomeScale")
 		if not sc then
 			sc = Instance.new("UIScale")
@@ -21186,7 +21185,8 @@ local function openHome()
 			sc.Parent = inter
 		end
 		local r = siriusValues.responsive
-		sc.Scale = (r and r.scale) or 1
+		-- only shrink on smaller screens; never enlarge
+		sc.Scale = math.min((r and r.scale) or 1, 1)
 	end)
 
 	local homeBlur = Instance.new("BlurEffect", lighting)
@@ -21287,8 +21287,11 @@ local function openHome()
 		task.wait(0.02)
 	end
 
-	task.wait(0.85)
-
+	-- Release the input lock as soon as the cards start animating in;
+	-- the tweens finish on their own, so there's no reason to block
+	-- other sections for ~0.85s (that was the "can't tap anything for a
+	-- few seconds" lag).
+	task.wait(0.12)
 	debounce = false
 end
 
@@ -21344,10 +21347,16 @@ local function closeHome()
 
 	removeReverbs(0.5)
 
-	task.wait(0.52)
-
-	homeContainer.Visible = false
+	-- Release the input lock quickly; hide the (already-faded) container
+	-- a moment later so the fade can finish without blocking input.
+	task.wait(0.18)
 	debounce = false
+	task.delay(0.34, function()
+		if not homeContainer.Visible then return end
+		if homeContainer.BackgroundTransparency >= 0.99 then
+			homeContainer.Visible = false
+		end
+	end)
 end
 
 local function openScriptSearch()
