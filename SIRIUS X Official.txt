@@ -10633,9 +10633,9 @@ do
 			selectedEsp = false,
 			restorePanel = nil
 		}
-	local playerActionPickerDefaultSize = Vector2.new(330, 432)
-	local playerActionPickerMinSize = Vector2.new(290, 300)
-	local playerActionPickerMaxSize = Vector2.new(380, 480)
+	local playerActionPickerDefaultSize = Vector2.new(300, 392)
+	local playerActionPickerMinSize = Vector2.new(270, 280)
+	local playerActionPickerMaxSize = Vector2.new(350, 440)
 	local playerActionPickerCurrentSize = playerActionPickerDefaultSize
 	siriusValues.selectActionStyle = {
 		panel = Color3.fromRGB(18, 18, 18),
@@ -11064,9 +11064,9 @@ do
 		removingConnection = nil,
 		returnToPicker = false
 	}
-	local liveTrackDefaultSize = Vector2.new(300, 500)
-	local liveTrackMinSize = Vector2.new(280, 420)
-		local liveTrackMaxSize = Vector2.new(320, 560)
+	local liveTrackDefaultSize = Vector2.new(250, 410)
+	local liveTrackMinSize = Vector2.new(230, 340)
+		local liveTrackMaxSize = Vector2.new(290, 470)
 		local liveTrackCurrentSize = liveTrackDefaultSize
 		local liveTrackCurrentPosition = UDim2.new(0.5, 0, 0.5, 0)
 
@@ -13625,23 +13625,28 @@ local function ensurePlayerActionPicker()
 		local close = Instance.new("TextButton")
 		close.Name = "Close"
 		close.AnchorPoint = Vector2.new(1, 0)
-		close.Position = UDim2.new(1, -18, 0, 14)
+		close.Position = UDim2.new(1, -16, 0, 14)
 		close.Size = UDim2.new(0, 34, 0, 34)
-		close.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
-		close.BackgroundTransparency = 1
+		close.BackgroundColor3 = Color3.fromRGB(46, 46, 46)
+		close.BackgroundTransparency = 0.35
 		close.BorderSizePixel = 0
-		close.Text = "√ó"
-		close.TextColor3 = Color3.fromRGB(220, 220, 220)
-		close.TextTransparency = 0.08
-		close.TextSize = 24
-		close.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium)
+		close.Text = "‚úï"
+		close.TextColor3 = Color3.fromRGB(255, 255, 255)
+		close.TextTransparency = 0
+		close.TextScaled = false
+		close.TextSize = 20
+		close.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
 		close.AutoButtonColor = false
 		close.ZIndex = 82
 		close.Parent = content
 
+		local closeCorner = Instance.new("UICorner")
+		closeCorner.CornerRadius = UDim.new(1, 0)
+		closeCorner.Parent = close
+
 		close.MouseEnter:Connect(function()
 			tweenService:Create(close, TweenInfo.new(0.16, Enum.EasingStyle.Quint), {
-				BackgroundTransparency = 1,
+				BackgroundTransparency = 0.1,
 				TextColor3 = Color3.fromRGB(255, 255, 255),
 				TextTransparency = 0
 			}):Play()
@@ -13649,9 +13654,9 @@ local function ensurePlayerActionPicker()
 
 		close.MouseLeave:Connect(function()
 			tweenService:Create(close, TweenInfo.new(0.18, Enum.EasingStyle.Quint), {
-				BackgroundTransparency = 1,
-				TextColor3 = Color3.fromRGB(220, 220, 220),
-				TextTransparency = 0.08
+				BackgroundTransparency = 0.35,
+				TextColor3 = Color3.fromRGB(255, 255, 255),
+				TextTransparency = 0
 			}):Play()
 		end)
 
@@ -19198,7 +19203,7 @@ local function closePanel(panelName, openingOther)
 		tweenService:Create(panel, TweenInfo.new(0.75, Enum.EasingStyle.Exponential, Enum.EasingDirection.InOut), {BackgroundTransparency = 1}):Play()
 		tweenService:Create(panel, TweenInfo.new(1.1, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = button.Size}):Play()
 		tweenService:Create(panel, TweenInfo.new(0.65, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.panelButtonStart(panelName)}):Play()
-		tweenService:Create(toggle, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.dockUDim(-85)}):Play()
+		tweenService:Create(toggle, TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.dockUDimRaw(siriusValues.barToggleY())}):Play()
 	end
 
 	-- Animate interactive elements
@@ -24170,6 +24175,17 @@ end
 -- (scaled) panel ‚Äî exactly the PC stack, only shrunk on small
 -- screens. At scale 1 with no inset this reproduces the original
 -- -90 / -341 values.
+-- Y offset for the toggle chevron when the smart bar is OPEN (no panel).
+-- Sits just above the SCALED bar so it isn't floating with a big gap on
+-- mobile. At scale 1 with no inset this is ~-87 (matches the old -85).
+function siriusValues.barToggleY()
+	local r = siriusValues.responsive
+	local s = (r and r.scale) or 1
+	if s < 0.0001 then s = 1 end
+	local bottomPad = (r and r.bottomInset and r.bottomInset()) or 0
+	return -(12 + bottomPad + 70 * s + 5)
+end
+
 function siriusValues.panelDockY(panelHeightOffset)
 	local r = siriusValues.responsive
 	local s = (r and r.scale) or 1
@@ -24304,7 +24320,7 @@ local function openSmartBar()
 	tweenService:Create(toggle, TweenInfo.new(0.82, Enum.EasingStyle.Quint), {Rotation = 0}):Play()
 	tweenService:Create(smartBar, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = siriusValues.dockUDim(-12)}):Play()
 	tweenService:Create(toastsContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = siriusValues.dockUDim(-110)}):Play()
-	tweenService:Create(toggle, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = siriusValues.dockUDim(-85)}):Play()
+	tweenService:Create(toggle, TweenInfo.new(0.7, Enum.EasingStyle.Quint), {Position = siriusValues.dockUDimRaw(siriusValues.barToggleY())}):Play()
 	tweenService:Create(smartBar, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Size = siriusValues.getResponsiveSmartBarSize(true)}):Play()
 	tweenService:Create(smartBar, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {BackgroundTransparency = 0.18}):Play()
 	tweenService:Create(smartBar.Shadow, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {ImageTransparency = 0.7}):Play()
@@ -24692,8 +24708,19 @@ local function createPlayer(player)
 			AbsoluteSize = anchorObj.AbsoluteSize
 		}
 		task.spawn(function()
-			tweenService:Create(toggle, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.dockUDim(-85)}):Play()
+			tweenService:Create(toggle, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut), {Position = siriusValues.dockUDimRaw(siriusValues.barToggleY())}):Play()
+			-- Smooth "disappear": shrink the whole panel away (via its
+			-- per-panel UIScale) and fade it, instead of the default
+			-- grow-into-button close, then run closePanel for cleanup.
+			local plScale = playerlistPanel:FindFirstChild("__SiriusPerPanelScale")
+			local plBase = plScale and plScale.Scale or nil
+			if plScale then
+				tweenService:Create(plScale, TweenInfo.new(0.26, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {Scale = 0.0001}):Play()
+			end
+			tweenService:Create(playerlistPanel, TweenInfo.new(0.24, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
+			task.wait(0.24)
 			closePanel("Playerlist", true)
+			if plScale and plBase then plScale.Scale = plBase end
 			preservingSelectedAction = false
 			if clearPlayerActions then clearPlayerActions() end
 			newPlayer.Size = UDim2.new(0, 539, 0, 45)
@@ -26977,7 +27004,7 @@ do
 		pcall(function()
 			if smartBarOpen then
 				smartBar.Position = siriusValues.dockUDim(-12)
-				toggle.Position = siriusValues.dockUDim(-85)
+				toggle.Position = siriusValues.dockUDimRaw(siriusValues.barToggleY())
 			end
 		end)
 	end
@@ -27475,7 +27502,7 @@ if siriusValues.responsive and siriusValues.responsive.onChange and not siriusVa
 			if smartBarOpen then
 				smartBar.Size = siriusValues.getResponsiveSmartBarSize(true)
 				smartBar.Position = siriusValues.dockUDim(-12)
-				toggle.Position = siriusValues.dockUDim(-85)
+				toggle.Position = siriusValues.dockUDimRaw(siriusValues.barToggleY())
 				toastsContainer.Position = siriusValues.dockUDim(-110)
 				if siriusValues.syncSmartBarCommandSearchLayout then
 					siriusValues.syncSmartBarCommandSearchLayout()
