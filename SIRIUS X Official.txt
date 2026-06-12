@@ -5797,9 +5797,19 @@ local siriusSettings = {
 				settingType = 'Action',
 				action = 'run_device_setup',
 				callback = function()
-					if siriusValues.runSetupWizard then
-						task.spawn(siriusValues.runSetupWizard, true)
-					end
+					task.spawn(function()
+						-- close the Settings panel first so the wizard can
+						-- open whatever panel each step is about.
+						pcall(function()
+							if settingsPanel.Visible and not debounce then
+								closeSettings()
+							end
+						end)
+						task.wait(0.35)
+						if siriusValues.runSetupWizard then
+							siriusValues.runSetupWizard(true)
+						end
+					end)
 				end,
 				id = 'rundevicesetup'
 			},
@@ -21005,7 +21015,8 @@ local function ensureFrameProperties()
 	attachScrollbarFade(playerlistPanel.Interactions.List, 0.68, 0.62)
 	attachScrollbarFade(scriptSearch.List, 0.42, 0.68)
 	attachScrollbarFade(musicPanel.Queue.List, 0.62, 0.65)
-	makeDraggable(settingsPanel)
+	-- Settings stays centred (not draggable); its size is adjusted via
+	-- the device setup wizard instead.
 	makeDraggable(musicPanel)
 end
 
@@ -27211,12 +27222,54 @@ function siriusValues.runSetupWizard(isRerun)
 			siriusValues.saveDeviceSetup(siriusValues._wizardState.cfg)
 			siriusValues.applyDeviceSetup(siriusValues._wizardState.cfg)
 		end
+		-- close any panel the wizard opened for previewing
+		pcall(function()
+			if homeContainer.Visible and not debounce then closeHome() end
+			if settingsPanel.Visible and not debounce then closeSettings() end
+			if playerActionSystem.isPickerOpen and playerActionSystem.isPickerOpen() and playerActionSystem.closePicker then playerActionSystem.closePicker(true) end
+		end)
 		tweenService:Create(blur, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Size = 0}):Play()
 		task.delay(0.35, function()
 			if blur and blur.Parent then blur:Destroy() end
 			if root and root.Parent then root:Destroy() end
 		end)
 		siriusValues._wizardOpen = false
+	end
+
+	-- Open/close the panel each step is about, so the user can actually
+	-- see and adjust it while the instruction strip floats on top.
+	local function manageStepPanel(key)
+		local st = siriusValues._wizardState
+		local prev = st.wizPanel
+		st.wizPanel = key
+		task.spawn(function()
+			pcall(function()
+				if prev == "home" and homeContainer.Visible and not debounce then closeHome()
+				elseif prev == "settings" and settingsPanel.Visible and not debounce then closeSettings()
+				elseif prev == "picker" and playerActionSystem.isPickerOpen and playerActionSystem.isPickerOpen() and playerActionSystem.closePicker then playerActionSystem.closePicker(true)
+				end
+			end)
+			task.wait(0.18)
+			pcall(function()
+				if key == "bar" then
+					if not smartBarOpen and not debounce then openSmartBar() end
+				elseif key == "home" then
+					if not homeContainer.Visible and not debounce then openHome() end
+				elseif key == "settings" then
+					if not settingsPanel.Visible and not debounce then openSettings() end
+				elseif key == "picker" then
+					if playerActionSystem.openPicker and not (playerActionSystem.isPickerOpen and playerActionSystem.isPickerOpen()) then
+						local target
+						for _, pl in ipairs(players:GetPlayers()) do
+							if pl ~= localPlayer then target = pl break end
+						end
+						if target then
+							playerActionSystem.openPicker(target, {AbsolutePosition = Vector2.new(0, 0), AbsoluteSize = Vector2.new(0, 0)}, function() end)
+						end
+					end
+				end
+			end)
+		end)
 	end
 
 	local function render()
@@ -27226,6 +27279,7 @@ function siriusValues.runSetupWizard(isRerun)
 		backBtn.Visible = st.step > 1
 		nextBtn.Text = (st.step == #steps) and "Finish" or (st.step == 1 and "Start" or "Next")
 		siriusValues.wizardRenderStep(steps[st.step], content, title, desc, st)
+		manageStepPanel(steps[st.step])
 	end
 
 	nextBtn.MouseButton1Click:Connect(function()
