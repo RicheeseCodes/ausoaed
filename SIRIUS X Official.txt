@@ -5796,20 +5796,14 @@ local siriusSettings = {
 				description = 'Open the guided setup again to re-tune the interface size, smart-bar position and notifications for this device.',
 				settingType = 'Action',
 				action = 'run_device_setup',
+				-- This table is built near the top of the file, so it must
+				-- NOT reference locals defined later (closeSettings,
+				-- settingsPanel, queueNotification) ‚Äî they'd be nil globals
+				-- here. Call siriusValues.* handlers defined later instead.
 				callback = function()
-					task.spawn(function()
-						-- close the Settings panel first so the wizard can
-						-- open whatever panel each step is about.
-						pcall(function()
-							if settingsPanel.Visible and not debounce then
-								closeSettings()
-							end
-						end)
-						task.wait(0.35)
-						if siriusValues.runSetupWizard then
-							siriusValues.runSetupWizard(true)
-						end
-					end)
+					if siriusValues.launchSetupFromSettings then
+						siriusValues.launchSetupFromSettings()
+					end
 				end,
 				id = 'rundevicesetup'
 			},
@@ -5819,18 +5813,9 @@ local siriusSettings = {
 				settingType = 'Action',
 				action = 'reset_device_setup',
 				callback = function()
-					pcall(function()
-						if typeof(delfile) == "function" and typeof(isfile) == "function" and isfile(siriusValues.deviceSetupPath()) then
-							delfile(siriusValues.deviceSetupPath())
-						end
-					end)
-					if siriusValues.responsive and siriusValues.responsive.setUserScale then
-						siriusValues.responsive.setUserScale(1)
+					if siriusValues.resetDeviceSetup then
+						siriusValues.resetDeviceSetup()
 					end
-					siriusValues.userNotifScale = nil
-					siriusValues.dockOffset = Vector2.new(0, 0)
-					pcall(function() if siriusValues.applyNotifCorner then siriusValues.applyNotifCorner() end end)
-					pcall(queueNotification, "Reset to Automatic", "SIRIUS X will now size and position itself automatically.", 4400696294)
 				end,
 				id = 'resetdevicesetup'
 			},
@@ -27242,21 +27227,27 @@ function siriusValues.runSetupWizard(isRerun)
 		local st = siriusValues._wizardState
 		local prev = st.wizPanel
 		st.wizPanel = key
+		local function waitDebounce()
+			local t = 0
+			while debounce and t < 2 do task.wait(0.05) t += 0.05 end
+		end
 		task.spawn(function()
+			waitDebounce()
 			pcall(function()
-				if prev == "home" and homeContainer.Visible and not debounce then closeHome()
-				elseif prev == "settings" and settingsPanel.Visible and not debounce then closeSettings()
+				if prev == "home" and homeContainer.Visible then closeHome()
+				elseif prev == "settings" and settingsPanel.Visible then closeSettings()
 				elseif prev == "picker" and playerActionSystem.isPickerOpen and playerActionSystem.isPickerOpen() and playerActionSystem.closePicker then playerActionSystem.closePicker(true)
 				end
 			end)
 			task.wait(0.18)
+			waitDebounce()
 			pcall(function()
 				if key == "bar" then
-					if not smartBarOpen and not debounce then openSmartBar() end
+					if not smartBarOpen then openSmartBar() end
 				elseif key == "home" then
-					if not homeContainer.Visible and not debounce then openHome() end
+					if not homeContainer.Visible then openHome() end
 				elseif key == "settings" then
-					if not settingsPanel.Visible and not debounce then openSettings() end
+					if not settingsPanel.Visible then openSettings() end
 				elseif key == "picker" then
 					if playerActionSystem.openPicker and not (playerActionSystem.isPickerOpen and playerActionSystem.isPickerOpen()) then
 						local target
@@ -27374,6 +27365,39 @@ function siriusValues.maybeRunFirstSetup()
 			pcall(siriusValues.runSetupWizard, false)
 		end)
 	end
+end
+
+-- Settings ‚Üí Customization handlers. Defined HERE (not in the settings
+-- table at the top of the file) so that closeSettings / settingsPanel /
+-- queueNotification are real upvalues in scope, not nil globals.
+function siriusValues.launchSetupFromSettings()
+	task.spawn(function()
+		pcall(function()
+			if settingsPanel.Visible and not debounce then
+				closeSettings()
+			end
+		end)
+		task.wait(0.4)
+		pcall(siriusValues.runSetupWizard, true)
+	end)
+end
+
+function siriusValues.resetDeviceSetup()
+	pcall(function()
+		if typeof(delfile) == "function" and typeof(isfile) == "function" and isfile(siriusValues.deviceSetupPath()) then
+			delfile(siriusValues.deviceSetupPath())
+		end
+	end)
+	siriusValues.userNotifScale = nil
+	siriusValues.userPickerFactor = 1
+	siriusValues.dockOffset = Vector2.new(0, 0)
+	pcall(function() settingsPanel:SetAttribute("__SiriusUserFactor", 1) end)
+	pcall(function() if siriusValues.applyHomeSizeFactor then siriusValues.applyHomeSizeFactor(1) end end)
+	if siriusValues.responsive and siriusValues.responsive.setUserScale then
+		siriusValues.responsive.setUserScale(1)
+	end
+	pcall(function() if siriusValues.applyNotifCorner then siriusValues.applyNotifCorner() end end)
+	pcall(queueNotification, "Reset to Automatic", "SIRIUS X will size and position itself automatically for this device.", 4400696294)
 end
 
 local function start()
