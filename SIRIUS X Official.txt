@@ -5786,6 +5786,47 @@ siriusValues.dylanfocUtilityBackgroundImage = "https://images-ebon-pi.vercel.app
 
 local siriusSettings = {
 	{
+		name = 'Customization',
+		description = 'Personalise SIRIUS X for this device ‚Äî size, positions, and the first-run setup.',
+		color = Color3.fromRGB(214, 80, 80),
+		minimumLicense = 'Free',
+		categorySettings = {
+			{
+				name = 'Run Device Setup',
+				description = 'Open the guided setup again to re-tune the interface size, smart-bar position and notifications for this device.',
+				settingType = 'Action',
+				action = 'run_device_setup',
+				callback = function()
+					if siriusValues.runSetupWizard then
+						task.spawn(siriusValues.runSetupWizard, true)
+					end
+				end,
+				id = 'rundevicesetup'
+			},
+			{
+				name = 'Reset to Automatic',
+				description = 'Clear your saved personalisation and let SIRIUS X size and position itself automatically for this device.',
+				settingType = 'Action',
+				action = 'reset_device_setup',
+				callback = function()
+					pcall(function()
+						if typeof(delfile) == "function" and typeof(isfile) == "function" and isfile(siriusValues.deviceSetupPath()) then
+							delfile(siriusValues.deviceSetupPath())
+						end
+					end)
+					if siriusValues.responsive and siriusValues.responsive.setUserScale then
+						siriusValues.responsive.setUserScale(1)
+					end
+					siriusValues.userNotifScale = nil
+					siriusValues.dockOffset = Vector2.new(0, 0)
+					pcall(function() if siriusValues.applyNotifCorner then siriusValues.applyNotifCorner() end end)
+					pcall(queueNotification, "Reset to Automatic", "SIRIUS X will now size and position itself automatically.", 4400696294)
+				end,
+				id = 'resetdevicesetup'
+			},
+		}
+	},
+	{
 		name = 'General',
 		description = 'The general settings for Sirius, from simple to unique features.',
 		color = Color3.new(0.117647, 0.490196, 0.72549),
@@ -6940,14 +6981,24 @@ do
 		return fn
 	end
 
+	-- User size multiplier from the device-setup wizard (1 = auto).
+	SiriusResponsive.userScale = 1
+
+	function SiriusResponsive.setUserScale(v)
+		SiriusResponsive.userScale = math.clamp(tonumber(v) or 1, 0.55, 1.6)
+		SiriusResponsive.recompute()
+	end
+
 	function SiriusResponsive.recompute()
 		local vp = readViewport()
 		SiriusResponsive.viewport = vp
 
-		-- Single uniform scale, capped at 1.0 (PC look preserved
-		-- byte-for-byte at >= the design viewport).
+		-- Auto scale (fits the design viewport, capped at 1.0 so PC stays
+		-- pixel-identical), then multiplied by the user's chosen size from
+		-- the setup wizard and re-clamped so it never gets unusable.
 		local s = math.min(vp.X / SiriusResponsive.DESIGN.X, vp.Y / SiriusResponsive.DESIGN.Y)
 		s = math.clamp(s, SiriusResponsive.MIN_SCALE, SiriusResponsive.MAX_SCALE)
+		s = math.clamp(s * (SiriusResponsive.userScale or 1), 0.35, 1.6)
 		SiriusResponsive.scale = s
 		-- Drive every per-panel UIScale to the new value.
 		for child, sc in pairs(SiriusResponsive.panelScales) do
@@ -8818,7 +8869,7 @@ do
 				sc.Name = "__SiriusNotifScale"
 				sc.Parent = nc
 			end
-			sc.Scale = (r.isPhone and r.isPhone()) and 0.7 or 0.82
+			sc.Scale = siriusValues.userNotifScale or ((r.isPhone and r.isPhone()) and 0.7 or 0.82)
 		else
 			nc.AnchorPoint = design.AnchorPoint
 			nc.Position    = design.Position
@@ -26832,6 +26883,418 @@ function siriusValues.startBetaRemoteControl()
 	end)
 end
 
+-- ============================================================
+-- Device Setup Wizard ‚Äî first-run personalisation.
+-- Persists the user's chosen UI size, smart-bar position and
+-- notification size per device, re-applies them on every launch,
+-- and can be re-run from Settings ‚Üí Customization.
+-- ============================================================
+function siriusValues.deviceSetupPath()
+	return (siriusValues.siriusFolder or "Sirius") .. "/device-setup.srs"
+end
+
+function siriusValues.loadDeviceSetup()
+	local ok, data = pcall(function()
+		if typeof(isfile) == "function" and isfile(siriusValues.deviceSetupPath()) then
+			return httpService:JSONDecode(readfile(siriusValues.deviceSetupPath()))
+		end
+		return nil
+	end)
+	if ok and type(data) == "table" then return data end
+	return nil
+end
+
+function siriusValues.saveDeviceSetup(cfg)
+	pcall(function()
+		if typeof(writefile) ~= "function" then return end
+		pcall(checkFolder)
+		writefile(siriusValues.deviceSetupPath(), httpService:JSONEncode(cfg))
+	end)
+end
+
+-- Apply a saved/edited config to the live UI.
+function siriusValues.applyDeviceSetup(cfg)
+	if type(cfg) ~= "table" then return end
+	local r = siriusValues.responsive
+	if cfg.notifScale then siriusValues.userNotifScale = tonumber(cfg.notifScale) end
+	if r and r.setUserScale and cfg.uiScale then
+		r.setUserScale(cfg.uiScale)   -- this recomputes (re-applies scale + insets)
+	end
+	siriusValues.dockOffset = Vector2.new(tonumber(cfg.dockOffsetX) or 0, tonumber(cfg.dockOffsetY) or 0)
+	pcall(function() if siriusValues.applyNotifCorner then siriusValues.applyNotifCorner() end end)
+	-- re-seat the bottom dock at the saved offset if the bar is closed
+	pcall(function()
+		if not smartBarOpen then
+			smartBar.Position = siriusValues.dockUDim(-12)
+			toggle.Position = checkTools() and siriusValues.dockUDim(-68) or siriusValues.dockUDim(-5)
+		end
+	end)
+end
+
+-- A small reusable slider (track + handle) inside `parent`. Calls
+-- onChange(value) live as it's dragged. Returns the handle setter.
+function siriusValues.wizardSlider(parent, posY, minV, maxV, value, fmt, onChange, dispMul)
+	local track = Instance.new("Frame")
+	track.Size = UDim2.new(1, -48, 0, 6)
+	track.Position = UDim2.new(0, 24, 0, posY)
+	track.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	track.BorderSizePixel = 0
+	track.ZIndex = 30050
+	track.Parent = parent
+	Instance.new("UICorner", track).CornerRadius = UDim.new(1, 0)
+
+	local fill = Instance.new("Frame")
+	fill.BackgroundColor3 = Color3.fromRGB(214, 80, 80)
+	fill.BorderSizePixel = 0
+	fill.Size = UDim2.new(0, 0, 1, 0)
+	fill.ZIndex = 30051
+	fill.Parent = track
+	Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
+
+	local handle = Instance.new("TextButton")
+	handle.Text = ""
+	handle.AnchorPoint = Vector2.new(0.5, 0.5)
+	handle.Size = UDim2.new(0, 22, 0, 22)
+	handle.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
+	handle.AutoButtonColor = false
+	handle.ZIndex = 30052
+	handle.Parent = track
+	Instance.new("UICorner", handle).CornerRadius = UDim.new(1, 0)
+
+	local valLabel = Instance.new("TextLabel")
+	valLabel.BackgroundTransparency = 1
+	valLabel.Size = UDim2.new(1, -48, 0, 18)
+	valLabel.Position = UDim2.new(0, 24, 0, posY - 24)
+	valLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
+	valLabel.TextColor3 = Color3.fromRGB(235, 235, 235)
+	valLabel.TextSize = 14
+	valLabel.TextXAlignment = Enum.TextXAlignment.Right
+	valLabel.ZIndex = 30052
+	valLabel.Parent = parent
+
+	local state = { v = value, dragging = false }
+	local function setFromAlpha(a)
+		a = math.clamp(a, 0, 1)
+		state.v = minV + (maxV - minV) * a
+		fill.Size = UDim2.new(a, 0, 1, 0)
+		handle.Position = UDim2.new(a, 0, 0.5, 0)
+		valLabel.Text = (fmt or "%.2f"):format(state.v * (dispMul or 1))
+		if onChange then pcall(onChange, state.v) end
+	end
+	setFromAlpha((value - minV) / math.max(maxV - minV, 0.0001))
+
+	local function alphaFromX(px)
+		local rel = px - track.AbsolutePosition.X
+		return rel / math.max(track.AbsoluteSize.X, 1)
+	end
+	handle.InputBegan:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then state.dragging = true end
+	end)
+	track.InputBegan:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+			state.dragging = true
+			setFromAlpha(alphaFromX(i.Position.X))
+		end
+	end)
+	userInputService.InputChanged:Connect(function(i)
+		if not state.dragging then return end
+		if i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch then
+			setFromAlpha(alphaFromX(i.Position.X))
+		end
+	end)
+	userInputService.InputEnded:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then state.dragging = false end
+	end)
+	return state
+end
+
+function siriusValues.runSetupWizard(isRerun)
+	if siriusValues._wizardOpen then return end
+	siriusValues._wizardOpen = true
+
+	local cfg = siriusValues.loadDeviceSetup() or {}
+	cfg.uiScale = tonumber(cfg.uiScale) or 1
+	cfg.notifScale = tonumber(cfg.notifScale) or ((siriusValues.responsive and siriusValues.responsive.isPhone and siriusValues.responsive.isPhone()) and 0.7 or 0.82)
+	cfg.dockOffsetX = tonumber(cfg.dockOffsetX) or (siriusValues.dockOffset and siriusValues.dockOffset.X) or 0
+	cfg.dockOffsetY = tonumber(cfg.dockOffsetY) or (siriusValues.dockOffset and siriusValues.dockOffset.Y) or 0
+
+	local root = Instance.new("Frame")
+	root.Name = "SiriusSetupWizard"
+	root.Size = UDim2.new(1, 0, 1, 0)
+	root.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	root.BackgroundTransparency = 1
+	root.BorderSizePixel = 0
+	root.ZIndex = 30000
+	root.Active = true
+	root.Parent = UI
+
+	local blur = Instance.new("BlurEffect")
+	blur.Name = "SiriusWizardBlur"
+	blur.Size = 0
+	blur.Parent = lighting
+	tweenService:Create(blur, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = 22}):Play()
+	tweenService:Create(root, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {BackgroundTransparency = 0.45}):Play()
+
+	-- centred card (scaled to fit on small screens)
+	local card = Instance.new("Frame")
+	card.AnchorPoint = Vector2.new(0.5, 0.5)
+	card.Position = UDim2.new(0.5, 0, 0.5, 0)
+	card.Size = UDim2.new(0, 520, 0, 420)
+	card.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+	card.BorderSizePixel = 0
+	card.ZIndex = 30010
+	card.Parent = root
+	Instance.new("UICorner", card).CornerRadius = UDim.new(0, 22)
+	local cstroke = Instance.new("UIStroke", card)
+	cstroke.Color = Color3.fromRGB(178, 62, 62)
+	cstroke.Thickness = 1.2
+	cstroke.Transparency = 0.4
+	local cardScale = Instance.new("UIScale", card)
+	cardScale.Scale = math.clamp((siriusValues.responsive and siriusValues.responsive.scale) or 1, 0.55, 1)
+
+	local accent = Instance.new("Frame")
+	accent.BackgroundColor3 = Color3.fromRGB(218, 78, 78)
+	accent.BorderSizePixel = 0
+	accent.Position = UDim2.new(0, 28, 0, 26)
+	accent.Size = UDim2.new(0, 46, 0, 4)
+	accent.ZIndex = 30011
+	accent.Parent = card
+	Instance.new("UICorner", accent).CornerRadius = UDim.new(1, 0)
+
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.Position = UDim2.new(0, 28, 0, 40)
+	title.Size = UDim2.new(1, -56, 0, 30)
+	title.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
+	title.TextColor3 = Color3.fromRGB(245, 245, 245)
+	title.TextSize = 22
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.ZIndex = 30011
+	title.Parent = card
+
+	local desc = Instance.new("TextLabel")
+	desc.BackgroundTransparency = 1
+	desc.Position = UDim2.new(0, 28, 0, 72)
+	desc.Size = UDim2.new(1, -56, 0, 40)
+	desc.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium)
+	desc.TextColor3 = Color3.fromRGB(165, 165, 165)
+	desc.TextSize = 14
+	desc.TextWrapped = true
+	desc.TextYAlignment = Enum.TextYAlignment.Top
+	desc.TextXAlignment = Enum.TextXAlignment.Left
+	desc.ZIndex = 30011
+	desc.Parent = card
+
+	local content = Instance.new("Frame")
+	content.BackgroundTransparency = 1
+	content.Position = UDim2.new(0, 0, 0, 122)
+	content.Size = UDim2.new(1, 0, 1, -190)
+	content.ZIndex = 30011
+	content.Parent = card
+
+	-- footer
+	local dots = Instance.new("Frame")
+	dots.BackgroundTransparency = 1
+	dots.AnchorPoint = Vector2.new(0, 1)
+	dots.Position = UDim2.new(0, 28, 1, -24)
+	dots.Size = UDim2.new(0, 120, 0, 10)
+	dots.ZIndex = 30011
+	dots.Parent = card
+
+	local function mkBtn(txt, x, primary)
+		local b = Instance.new("TextButton")
+		b.AnchorPoint = Vector2.new(1, 1)
+		b.Position = UDim2.new(1, x, 1, -20)
+		b.Size = UDim2.new(0, 104, 0, 38)
+		b.BackgroundColor3 = primary and Color3.fromRGB(214, 80, 80) or Color3.fromRGB(40, 40, 40)
+		b.AutoButtonColor = true
+		b.Text = txt
+		b.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
+		b.TextColor3 = Color3.fromRGB(245, 245, 245)
+		b.TextSize = 15
+		b.ZIndex = 30012
+		b.Parent = card
+		Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
+		return b
+	end
+	local nextBtn = mkBtn("Next", -28, true)
+	local backBtn = mkBtn("Back", -140, false)
+	local skipBtn = Instance.new("TextButton")
+	skipBtn.BackgroundTransparency = 1
+	skipBtn.AnchorPoint = Vector2.new(0, 1)
+	skipBtn.Position = UDim2.new(0, 28, 1, -2)
+	skipBtn.Size = UDim2.new(0, 80, 0, 16)
+	skipBtn.Text = "Skip setup"
+	skipBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium)
+	skipBtn.TextColor3 = Color3.fromRGB(140, 140, 140)
+	skipBtn.TextSize = 12
+	skipBtn.TextXAlignment = Enum.TextXAlignment.Left
+	skipBtn.ZIndex = 30012
+	skipBtn.Parent = card
+
+	siriusValues._wizardState = { step = 1, cfg = cfg }
+	local steps = { "welcome", "size", "bar", "notif", "finish" }
+
+	-- progress dots
+	local dotObjs = {}
+	for i = 1, #steps do
+		local d = Instance.new("Frame")
+		d.Size = UDim2.new(0, 8, 0, 8)
+		d.Position = UDim2.new(0, (i - 1) * 16, 0.5, -4)
+		d.BackgroundColor3 = Color3.fromRGB(90, 90, 90)
+		d.BorderSizePixel = 0
+		d.ZIndex = 30012
+		d.Parent = dots
+		Instance.new("UICorner", d).CornerRadius = UDim.new(1, 0)
+		dotObjs[i] = d
+	end
+
+	local function closeWizard(save)
+		if save then
+			siriusValues._wizardState.cfg.completed = true
+			siriusValues.saveDeviceSetup(siriusValues._wizardState.cfg)
+			siriusValues.applyDeviceSetup(siriusValues._wizardState.cfg)
+		end
+		tweenService:Create(blur, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Size = 0}):Play()
+		tweenService:Create(root, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
+		task.delay(0.35, function()
+			if blur and blur.Parent then blur:Destroy() end
+			if root and root.Parent then root:Destroy() end
+		end)
+		siriusValues._wizardOpen = false
+	end
+
+	local function render()
+		local st = siriusValues._wizardState
+		for _, c in ipairs(content:GetChildren()) do c:Destroy() end
+		for i, d in ipairs(dotObjs) do
+			d.BackgroundColor3 = (i == st.step) and Color3.fromRGB(218, 78, 78) or Color3.fromRGB(90, 90, 90)
+		end
+		backBtn.Visible = st.step > 1
+		local key = steps[st.step]
+		nextBtn.Text = (st.step == #steps) and "Finish" or (st.step == 1 and "Get Started" or "Next")
+		siriusValues.wizardRenderStep(key, content, title, desc, st)
+	end
+
+	nextBtn.MouseButton1Click:Connect(function()
+		local st = siriusValues._wizardState
+		if st.step >= #steps then closeWizard(true) else st.step += 1 render() end
+	end)
+	backBtn.MouseButton1Click:Connect(function()
+		local st = siriusValues._wizardState
+		if st.step > 1 then st.step -= 1 render() end
+	end)
+	skipBtn.MouseButton1Click:Connect(function() closeWizard(true) end)
+
+	render()
+end
+
+-- Populate the content area for a given wizard step. Kept separate so
+-- each step's locals don't pile up against the 200-register limit.
+function siriusValues.wizardRenderStep(key, content, title, desc, st)
+	if key == "welcome" then
+		title.Text = "Welcome to SIRIUS X"
+		desc.Text = "Let's set the interface up for your device. It only takes a few seconds, and you can change everything later from Settings."
+		local hint = Instance.new("TextLabel")
+		hint.BackgroundTransparency = 1
+		hint.Position = UDim2.new(0, 28, 0, 16)
+		hint.Size = UDim2.new(1, -56, 0, 60)
+		hint.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium)
+		hint.TextColor3 = Color3.fromRGB(150, 150, 150)
+		hint.TextSize = 14
+		hint.TextWrapped = true
+		hint.TextYAlignment = Enum.TextYAlignment.Top
+		hint.TextXAlignment = Enum.TextXAlignment.Left
+		hint.Text = "We'll tune the menu size, the smart-bar position and the notifications so everything fits your screen perfectly."
+		hint.ZIndex = 30012
+		hint.Parent = content
+
+	elseif key == "size" then
+		title.Text = "Interface Size"
+		desc.Text = "Drag to choose how large the menu appears. The whole UI updates live."
+		siriusValues.wizardSlider(content, 70, 0.7, 1.4, st.cfg.uiScale, "%.0f%%", function(v)
+			st.cfg.uiScale = v
+			if siriusValues.responsive and siriusValues.responsive.setUserScale then
+				siriusValues.responsive.setUserScale(v)
+			end
+		end, 100)
+
+	elseif key == "bar" then
+		title.Text = "Smart Bar Position"
+		desc.Text = "Use the sliders to move the smart bar. It moves live so you can place it comfortably."
+		local r = siriusValues.responsive
+		siriusValues.wizardSlider(content, 60, -300, 300, st.cfg.dockOffsetX or 0, "X %.0f", function(v)
+			st.cfg.dockOffsetX = v
+			siriusValues.dockOffset = Vector2.new(v, st.cfg.dockOffsetY or 0)
+			pcall(function()
+				smartBar.Position = smartBarOpen and siriusValues.dockUDim(-12) or siriusValues.dockUDim(73)
+				if smartBarOpen then toggle.Position = siriusValues.dockUDimRaw(siriusValues.barToggleY()) end
+			end)
+		end)
+		siriusValues.wizardSlider(content, 130, -260, 0, st.cfg.dockOffsetY or 0, "Y %.0f", function(v)
+			st.cfg.dockOffsetY = v
+			siriusValues.dockOffset = Vector2.new(st.cfg.dockOffsetX or 0, v)
+			pcall(function()
+				smartBar.Position = smartBarOpen and siriusValues.dockUDim(-12) or siriusValues.dockUDim(73)
+				if smartBarOpen then toggle.Position = siriusValues.dockUDimRaw(siriusValues.barToggleY()) end
+			end)
+		end)
+
+	elseif key == "notif" then
+		title.Text = "Notification Size"
+		desc.Text = "Set how large notifications appear in the corner. Tap ‚ÄúShow test‚Äù to preview."
+		siriusValues.wizardSlider(content, 70, 0.5, 1.0, st.cfg.notifScale, "%.0f%%", function(v)
+			st.cfg.notifScale = v
+			siriusValues.userNotifScale = v
+			pcall(function() if siriusValues.applyNotifCorner then siriusValues.applyNotifCorner() end end)
+		end, 100)
+		local test = Instance.new("TextButton")
+		test.Position = UDim2.new(0, 24, 0, 110)
+		test.Size = UDim2.new(0, 130, 0, 34)
+		test.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+		test.Text = "Show test"
+		test.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold)
+		test.TextColor3 = Color3.fromRGB(235, 235, 235)
+		test.TextSize = 14
+		test.ZIndex = 30012
+		test.Parent = content
+		Instance.new("UICorner", test).CornerRadius = UDim.new(0, 9)
+		test.MouseButton1Click:Connect(function()
+			pcall(queueNotification, "Test Notification", "This is how your notifications will look on this device.", 4400696294)
+		end)
+
+	elseif key == "finish" then
+		title.Text = "You're all set!"
+		desc.Text = "SIRIUS X is now personalised for this device."
+		local done = Instance.new("TextLabel")
+		done.BackgroundTransparency = 1
+		done.Position = UDim2.new(0, 28, 0, 10)
+		done.Size = UDim2.new(1, -56, 0, 80)
+		done.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium)
+		done.TextColor3 = Color3.fromRGB(150, 150, 150)
+		done.TextSize = 14
+		done.TextWrapped = true
+		done.TextYAlignment = Enum.TextYAlignment.Top
+		done.TextXAlignment = Enum.TextXAlignment.Left
+		done.Text = "You can change the size, positions and more anytime from Settings ‚Üí Customization, or run this setup again from there."
+		done.ZIndex = 30012
+		done.Parent = content
+	end
+end
+
+-- Run the wizard on first launch (no saved setup yet), or apply the
+-- saved setup if it exists.
+function siriusValues.maybeRunFirstSetup()
+	local cfg = siriusValues.loadDeviceSetup()
+	if cfg and cfg.completed then
+		siriusValues.applyDeviceSetup(cfg)
+	else
+		task.delay(1.2, function()
+			pcall(siriusValues.runSetupWizard, false)
+		end)
+	end
+end
+
 local function start()
 	if siriusValues.releaseType == "Experimental" then -- Make this more secure.
 		if not Pro then localPlayer:Kick("This is an experimental release, you must be Pro to run this. \n\nUpgrade at https://sirius.menu/") return end
@@ -26912,6 +27375,9 @@ local function start()
             })
         end
     end
+
+	-- Apply saved device setup, or run the first-run wizard.
+	pcall(siriusValues.maybeRunFirstSetup)
 end
 
 -- Sirius Events
